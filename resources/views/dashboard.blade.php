@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - HouSync</title>
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-content">
+                <div class="nav-item active">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" onclick="window.location.href='{{ route('units') }}'">
+                    <i class="fas fa-building"></i>
+                    <span>Units</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Billing</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>Messages</span>
+                </div>
+                <div class="nav-item">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Security Logs</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+                <div class="header-center">
+                    <h1 class="app-title">HouSync</h1>
+                </div>
+                <div class="header-right">
+                    <button class="header-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="header-btn">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <div class="user-profile">
+                        <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face" alt="Ann Lee" class="profile-avatar">
+                        <span class="profile-name">Ann Lee</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon occupied">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Occupied Units</h3>
+                            <div class="stat-value">
+                                <span class="indicator positive">+</span>
+                                <span class="value">23/30</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon available">
+                            <i class="fas fa-door-open"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Available Units</h3>
+                            <div class="stat-value">
+                                <span class="indicator positive">+</span>
+                                <span class="value">7</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon tenants">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Active Tenants</h3>
+                            <div class="stat-value">
+                                <span class="indicator positive">+</span>
+                                <span class="value">28</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon payments">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Payments Received</h3>
+                            <div class="stat-value">
+                                <span class="indicator positive">+</span>
+                                <span class="value">₱5200</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Dashboard Area -->
+                <div class="dashboard-main">
+                    <!-- Left Section - Data Table -->
+                    <div class="data-section">
+                        <div class="section-header">
+                            <h2>Month of July</h2>
+                            <div class="action-buttons">
+                                <button class="btn btn-outline">Export to excel</button>
+                                <button class="btn btn-primary">+ Add Documents</button>
+                            </div>
+                        </div>
+
+                        <div class="data-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Unit Number</th>
+                                        <th>Rent</th>
+                                        <th>Water Rate</th>
+                                        <th>Electricity Rate</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>Paid</td>
+                                        <td>₱600</td>
+                                        <td>₱1547.93</td>
+                                        <td><span class="status occupied">Occupied</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>Paid</td>
+                                        <td>₱350.6</td>
+                                        <td>₱824</td>
+                                        <td><span class="status occupied">Occupied</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td class="overdue">Overdue</td>
+                                        <td>₱679.12</td>
+                                        <td>₱947</td>
+                                        <td><span class="status occupied">Occupied</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td class="overdue">Overdue</td>
+                                        <td>₱679.12</td>
+                                        <td>₱947</td>
+                                        <td><span class="status occupied">Occupied</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>5</td>
+                                        <td class="overdue">Overdue</td>
+                                        <td>₱679.12</td>
+                                        <td>₱947</td>
+                                        <td><span class="status occupied">Occupied</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>6</td>
+                                        <td class="overdue">Overdue</td>
+                                        <td>₱679.12</td>
+                                        <td>₱947</td>
+                                        <td><span class="status occupied">Occupied</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Right Section - Recent Activity -->
+                    <div class="activity-section">
+                        <h3>Recent Tenant Activity</h3>
+                        
+                        <div class="activity-table">
+                            <div class="activity-header">
+                                <div class="col">Tenant Name</div>
+                                <div class="col">Activity</div>
+                                <div class="col">Status</div>
+                            </div>
+                            <div class="activity-row">
+                                <div class="col">Juan Karlos</div>
+                                <div class="col">Paid Rent</div>
+                                <div class="col"><span class="status confirmed">Confirmed</span></div>
+                            </div>
+                            <div class="activity-row">
+                                <div class="col">Ana Reyes</div>
+                                <div class="col">Uploaded Proof</div>
+                                <div class="col"><span class="status pending">Pending Review</span></div>
+                            </div>
+                            <div class="activity-row">
+                                <div class="col">Jane Doe</div>
+                                <div class="col">Maintenance Report</div>
+                                <div class="col"><span class="status pending">Pending Review</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Simple JavaScript for menu toggle
+        document.querySelector('.menu-toggle').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('collapsed');
+        });
+    </script>
+</body>
+</html> 
