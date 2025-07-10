@@ -22,6 +22,10 @@
                     <i class="fas fa-building"></i>
                     <span>Units</span>
                 </div>
+                <div class="nav-item" onclick="window.location.href='{{ route('tenants') }}'">
+                    <i class="fas fa-users"></i>
+                    <span>Tenants</span>
+                </div>
                 <div class="nav-item">
                     <i class="fas fa-credit-card"></i>
                     <span>Billing</span>

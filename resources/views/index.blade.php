@@ -96,6 +96,11 @@
             color: white;
         }
         
+        .tenants-btn {
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+            color: white;
+        }
+        
         .nav-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
@@ -105,7 +110,7 @@
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
         }
         
-        @media (max-width: 680px) {
+        @media (max-width: 780px) {
             .nav-buttons {
                 flex-direction: column;
                 align-items: center;
@@ -132,6 +137,7 @@
             <a href="{{ route('register') }}" class="nav-btn register-btn">Register Page</a>
             <a href="{{ route('dashboard') }}" class="nav-btn dashboard-btn">Dashboard Demo</a>
             <a href="{{ route('units') }}" class="nav-btn units-btn">Units Management</a>
+            <a href="{{ route('tenants') }}" class="nav-btn tenants-btn">Tenants Management</a>
         </div>
     </div>
 </body>

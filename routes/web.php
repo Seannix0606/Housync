@@ -21,3 +21,7 @@ Route::get('/dashboard', function () {
 Route::get('/units', function () {
     return view('units');
 })->name('units');
+
+Route::get('/tenants', function () {
+    return view('tenants');
+})->name('tenants');
