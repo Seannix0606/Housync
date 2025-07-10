@@ -25,15 +25,15 @@
                     <i class="fas fa-users"></i>
                     <span>Tenants</span>
                 </div>
-                <div class="nav-item">
+                <div class="nav-item" onclick="window.location.href='{{ route('billing') }}'">
                     <i class="fas fa-credit-card"></i>
                     <span>Billing</span>
                 </div>
-                <div class="nav-item">
+                <div class="nav-item" onclick="window.location.href='{{ route('messages') }}'">
                     <i class="fas fa-envelope"></i>
                     <span>Messages</span>
                 </div>
-                <div class="nav-item">
+                <div class="nav-item" onclick="window.location.href='{{ route('security') }}'">
                     <i class="fas fa-shield-alt"></i>
                     <span>Security Logs</span>
                 </div>

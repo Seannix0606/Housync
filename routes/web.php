@@ -25,3 +25,15 @@ Route::get('/units', function () {
 Route::get('/tenants', function () {
     return view('tenants');
 })->name('tenants');
+
+Route::get('/billing', function () {
+    return view('billing');
+})->name('billing');
+
+Route::get('/messages', function () {
+    return view('messages');
+})->name('messages');
+
+Route::get('/security', function () {
+    return view('security');
+})->name('security');
