@@ -86,20 +86,7 @@
             border: 2px solid #667eea;
         }
         
-        .dashboard-btn {
-            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
-            color: white;
-        }
-        
-        .units-btn {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-        
-        .tenants-btn {
-            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
-            color: white;
-        }
+
         
         .nav-btn:hover {
             transform: translateY(-2px);
@@ -135,9 +122,6 @@
         <div class="nav-buttons">
             <a href="{{ route('login') }}" class="nav-btn login-btn">Login Page</a>
             <a href="{{ route('register') }}" class="nav-btn register-btn">Register Page</a>
-            <a href="{{ route('dashboard') }}" class="nav-btn dashboard-btn">Dashboard Demo</a>
-            <a href="{{ route('units') }}" class="nav-btn units-btn">Units Management</a>
-            <a href="{{ route('tenants') }}" class="nav-btn tenants-btn">Tenants Management</a>
         </div>
     </div>
 </body>

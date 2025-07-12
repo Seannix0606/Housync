@@ -8,35 +8,148 @@
     <link rel="stylesheet" href="{{ asset('css/security.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- IMMEDIATE SIDEBAR STATE APPLICATION -->
+    <script>
+        // Apply sidebar state IMMEDIATELY when head loads - before body renders
+        (function() {
+            const sidebarState = localStorage.getItem('sidebarExpanded');
+            if (sidebarState === 'true') {
+                // Add CSS class immediately
+                document.documentElement.classList.add('sidebar-expanded');
+                console.log('SECURITY HEAD - Added sidebar-expanded class');
+            }
+        })();
+    </script>
+    
+    <!-- IMMEDIATE CSS TO HANDLE SIDEBAR STATE -->
+    <style>
+        /* Immediate sidebar state CSS - applies before JavaScript */
+        .sidebar-expanded .sidebar {
+            width: 250px !important;
+        }
+        .sidebar-expanded .main-content {
+            margin-left: 250px !important;
+        }
+        .sidebar-expanded .sidebar .nav-item span {
+            display: block !important;
+        }
+        
+        /* Ensure menu toggle button is always clickable */
+        .menu-toggle {
+            position: relative !important;
+            z-index: 9999 !important;
+            pointer-events: auto !important;
+            cursor: pointer !important;
+            background: transparent !important;
+            border: none !important;
+            padding: 8px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        
+        .menu-toggle:hover {
+            background: rgba(0, 0, 0, 0.1) !important;
+            border-radius: 4px !important;
+        }
+        
+        .menu-toggle:active {
+            background: rgba(0, 0, 0, 0.2) !important;
+        }
+        
+        /* Ensure the header area doesn't block clicks */
+        .header {
+            position: relative !important;
+            z-index: 999 !important;
+        }
+        
+        .header-left {
+            z-index: 9999 !important;
+            position: relative !important;
+        }
+        
+        /* Navigation structure and logout button styles */
+        .sidebar-content {
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100vh !important;
+            padding: 20px 0 0 0 !important;
+        }
+        
+        .nav-items-container {
+            flex: 1 !important;
+            padding-bottom: 20px !important;
+        }
+        
+        .nav-bottom {
+            margin-top: auto !important;
+            padding: 10px 0 20px 0 !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        .logout-item {
+            color: #ef4444 !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .logout-item:hover {
+            background: rgba(239, 68, 68, 0.1) !important;
+            color: #f87171 !important;
+        }
+        
+        .logout-item i {
+            color: #ef4444 !important;
+        }
+        
+        .logout-item:hover i {
+            color: #f87171 !important;
+        }
+        
+        /* Ensure logout text shows when sidebar is expanded */
+        .sidebar-expanded .logout-item span {
+            display: block !important;
+        }
+    </style>
 </head>
 <body>
     <div class="dashboard-container">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="mainSidebar">
             <div class="sidebar-content">
-                <div class="nav-item" onclick="window.location.href='{{ route('dashboard') }}'">
-                    <i class="fas fa-th-large"></i>
-                    <span>Dashboard</span>
+                <div class="nav-items-container">
+                    <div class="nav-item" onclick="window.location.href='{{ route('dashboard') }}'">
+                        <i class="fas fa-th-large"></i>
+                        <span>Dashboard</span>
+                    </div>
+                    <div class="nav-item" onclick="window.location.href='{{ route('units') }}'">
+                        <i class="fas fa-building"></i>
+                        <span>Units</span>
+                    </div>
+                    <div class="nav-item" onclick="window.location.href='{{ route('tenants') }}'">
+                        <i class="fas fa-users"></i>
+                        <span>Tenants</span>
+                    </div>
+                    <div class="nav-item" onclick="window.location.href='{{ route('billing') }}'">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Billing</span>
+                    </div>
+                    <div class="nav-item" onclick="window.location.href='{{ route('messages') }}'">
+                        <i class="fas fa-envelope"></i>
+                        <span>Messages</span>
+                    </div>
+                    <div class="nav-item active">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Security Logs</span>
+                    </div>
                 </div>
-                <div class="nav-item" onclick="window.location.href='{{ route('units') }}'">
-                    <i class="fas fa-building"></i>
-                    <span>Units</span>
-                </div>
-                <div class="nav-item" onclick="window.location.href='{{ route('tenants') }}'">
-                    <i class="fas fa-users"></i>
-                    <span>Tenants</span>
-                </div>
-                <div class="nav-item" onclick="window.location.href='{{ route('billing') }}'">
-                    <i class="fas fa-credit-card"></i>
-                    <span>Billing</span>
-                </div>
-                <div class="nav-item" onclick="window.location.href='{{ route('messages') }}'">
-                    <i class="fas fa-envelope"></i>
-                    <span>Messages</span>
-                </div>
-                <div class="nav-item active">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>Security Logs</span>
+                
+                <!-- Logout Button at Bottom -->
+                <div class="nav-bottom">
+                    <div class="nav-item logout-item" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -471,107 +584,197 @@
     </div>
 
     <script>
-        // Menu toggle functionality
-        document.querySelector('.menu-toggle').addEventListener('click', function() {
-            document.querySelector('.sidebar').classList.toggle('collapsed');
-        });
-
-        // Filter functionality for access logs
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                // Update active filter button
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
+        // ENHANCED SIDEBAR PERSISTENCE FOR SECURITY PAGE WITH TOGGLE FIX
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('SECURITY - DOM Content Loaded');
+            
+            // Find menu toggle button with better error handling
+            const menuToggle = document.querySelector('.menu-toggle');
+            console.log('SECURITY - Menu toggle button found:', !!menuToggle);
+            
+            if (menuToggle) {
+                console.log('SECURITY - Menu toggle button element:', menuToggle);
+            }
+            
+            // Ensure sidebar state is applied after DOM loads
+            const sidebarState = localStorage.getItem('sidebarExpanded');
+            console.log('SECURITY DOM READY - Sidebar state:', sidebarState);
+            
+            if (sidebarState === 'true') {
+                document.documentElement.classList.add('sidebar-expanded');
+                console.log('SECURITY DOM READY - Added sidebar-expanded class');
+            } else {
+                document.documentElement.classList.remove('sidebar-expanded');
+                console.log('SECURITY DOM READY - Removed sidebar-expanded class');
+            }
+            
+            // Enhanced toggle functionality with multiple approaches
+            function setupToggleButton() {
+                const menuToggle = document.querySelector('.menu-toggle');
                 
-                const filter = this.dataset.filter;
-                const rows = document.querySelectorAll('#accessLogsTable tr');
+                if (menuToggle) {
+                    // Remove any existing event listeners
+                    menuToggle.removeEventListener('click', handleToggleClick);
+                    
+                    // Add the click event listener
+                    menuToggle.addEventListener('click', handleToggleClick);
+                    
+                    // Also add event listener with different approach as backup
+                    menuToggle.onclick = handleToggleClick;
+                    
+                    console.log('SECURITY - Toggle event listeners added successfully');
+                } else {
+                    console.error('SECURITY - Menu toggle button not found!');
+                    // Retry finding the button after a short delay
+                    setTimeout(setupToggleButton, 100);
+                }
+            }
+            
+            function handleToggleClick(event) {
+                event.preventDefault();
+                event.stopPropagation();
                 
-                rows.forEach(row => {
-                    if (filter === 'all' || row.dataset.type === filter) {
-                        row.style.display = 'table-row';
-                    } else {
-                        row.style.display = 'none';
-                    }
+                console.log('SECURITY - Toggle button clicked!');
+                
+                const isCurrentlyExpanded = document.documentElement.classList.contains('sidebar-expanded');
+                console.log('SECURITY - Currently expanded:', isCurrentlyExpanded);
+                
+                if (isCurrentlyExpanded) {
+                    document.documentElement.classList.remove('sidebar-expanded');
+                    localStorage.setItem('sidebarExpanded', 'false');
+                    console.log('SECURITY TOGGLE - Sidebar collapsed');
+                } else {
+                    document.documentElement.classList.add('sidebar-expanded');
+                    localStorage.setItem('sidebarExpanded', 'true');
+                    console.log('SECURITY TOGGLE - Sidebar expanded');
+                }
+            }
+            
+            // Setup the toggle button
+            setupToggleButton();
+            
+            // Also setup with a slight delay as backup
+            setTimeout(setupToggleButton, 200);
+            
+            // Filter functionality for access logs
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const filter = this.dataset.filter;
+                    const rows = document.querySelectorAll('#accessLogsTable tr');
+                    
+                    rows.forEach(row => {
+                        if (filter === 'all' || row.dataset.type === filter) {
+                            row.style.display = 'table-row';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
                 });
             });
-        });
 
-        // Simulate real-time updates
-        function simulateRealTimeUpdate() {
-            const table = document.getElementById('accessLogsTable');
-            const tenants = [
-                { name: 'Jane Doe', unit: 'Unit 12', img: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face', card: 'RF-012-JD' },
-                { name: 'Lisa Garcia', unit: 'Unit 05', img: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=150&h=150&fit=crop&crop=face', card: 'RF-005-LG' }
-            ];
-            
-            const actions = ['entry', 'exit'];
-            const randomTenant = tenants[Math.floor(Math.random() * tenants.length)];
-            const randomAction = actions[Math.floor(Math.random() * actions.length)];
-            const currentTime = new Date();
-            
-            const newRow = document.createElement('tr');
-            newRow.dataset.type = randomAction;
-            newRow.className = 'log-entry recent';
-            
-            newRow.innerHTML = `
-                <td class="time-col">
-                    <span class="time">${currentTime.toLocaleTimeString()}</span>
-                    <span class="date">Now</span>
-                </td>
-                <td class="tenant-col">
-                    <div class="tenant-info">
-                        <img src="${randomTenant.img}" alt="${randomTenant.name}">
-                        <div>
-                            <span class="name">${randomTenant.name}</span>
-                            <span class="unit">${randomTenant.unit}</span>
+            // Simulate real-time updates
+            function simulateRealTimeUpdate() {
+                const table = document.getElementById('accessLogsTable');
+                if (!table) return;
+                
+                const tenants = [
+                    { name: 'Jane Doe', unit: 'Unit 12', img: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face', card: 'RF-012-JD' },
+                    { name: 'Lisa Garcia', unit: 'Unit 05', img: 'https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?w=150&h=150&fit=crop&crop=face', card: 'RF-005-LG' }
+                ];
+                
+                const actions = ['entry', 'exit'];
+                const randomTenant = tenants[Math.floor(Math.random() * tenants.length)];
+                const randomAction = actions[Math.floor(Math.random() * actions.length)];
+                const currentTime = new Date();
+                
+                const newRow = document.createElement('tr');
+                newRow.dataset.type = randomAction;
+                newRow.className = 'log-entry recent';
+                
+                newRow.innerHTML = `
+                    <td class="time-col">
+                        <span class="time">${currentTime.toLocaleTimeString()}</span>
+                        <span class="date">Now</span>
+                    </td>
+                    <td class="tenant-col">
+                        <div class="tenant-info">
+                            <img src="${randomTenant.img}" alt="${randomTenant.name}">
+                            <div>
+                                <span class="name">${randomTenant.name}</span>
+                                <span class="unit">${randomTenant.unit}</span>
+                            </div>
                         </div>
-                    </div>
-                </td>
-                <td class="action-col">
-                    <span class="action ${randomAction}">
-                        <i class="fas fa-sign-${randomAction === 'entry' ? 'in' : 'out'}-alt"></i>
-                        TAP ${randomAction === 'entry' ? 'IN' : 'OUT'}
-                    </span>
-                </td>
-                <td class="card-col">
-                    <span class="card-id">${randomTenant.card}</span>
-                </td>
-                <td class="status-col">
-                    <span class="status success">Granted</span>
-                </td>
-            `;
-            
-            table.insertBefore(newRow, table.firstChild);
-            
-            // Remove animation class after animation completes
-            setTimeout(() => {
-                newRow.classList.remove('recent');
-            }, 2000);
-            
-            // Update access count
-            const accessTodayElement = document.querySelector('.access-today .status-value');
-            if (accessTodayElement) {
-                let currentCount = parseInt(accessTodayElement.textContent);
-                accessTodayElement.textContent = currentCount + 1;
+                    </td>
+                    <td class="action-col">
+                        <span class="action ${randomAction}">
+                            <i class="fas fa-sign-${randomAction === 'entry' ? 'in' : 'out'}-alt"></i>
+                            TAP ${randomAction === 'entry' ? 'IN' : 'OUT'}
+                        </span>
+                    </td>
+                    <td class="card-col">
+                        <span class="card-id">${randomTenant.card}</span>
+                    </td>
+                    <td class="status-col">
+                        <span class="status success">Granted</span>
+                    </td>
+                `;
+                
+                table.insertBefore(newRow, table.firstChild);
+                
+                setTimeout(() => {
+                    newRow.classList.remove('recent');
+                }, 2000);
+                
+                const accessTodayElement = document.querySelector('.access-today .status-value');
+                if (accessTodayElement) {
+                    let currentCount = parseInt(accessTodayElement.textContent);
+                    accessTodayElement.textContent = currentCount + 1;
+                }
+            }
+
+            // Quick action buttons
+            document.querySelectorAll('.quick-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const action = this.querySelector('span').textContent;
+                    alert(`${action} functionality will be implemented with IoT backend.`);
+                });
+            });
+
+            // Start real-time simulation
+            setInterval(simulateRealTimeUpdate, 15000);
+
+            // Live indicator animation
+            setInterval(() => {
+                const liveIndicator = document.querySelector('.live-dot');
+                if (liveIndicator) {
+                    liveIndicator.style.opacity = 
+                        liveIndicator.style.opacity === '0.3' ? '1' : '0.3';
+                }
+            }, 1000);
+        });
+        
+        // Alternative approach - add click listener when window loads
+        window.addEventListener('load', function() {
+            console.log('SECURITY - Window loaded, setting up backup toggle');
+            const menuToggle = document.querySelector('.menu-toggle');
+            if (menuToggle) {
+                menuToggle.style.cursor = 'pointer';
+                menuToggle.style.pointerEvents = 'auto';
+                console.log('SECURITY - Backup toggle setup complete');
+            }
+        });
+        
+        // Logout functionality
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Redirect to login page (logout route doesn't exist)
+                window.location.href = '{{ route("login") }}';
             }
         }
-
-        // Quick action buttons
-        document.querySelectorAll('.quick-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const action = this.querySelector('span').textContent;
-                alert(`${action} functionality will be implemented with IoT backend.`);
-            });
-        });
-
-        // Start real-time simulation
-        setInterval(simulateRealTimeUpdate, 15000); // Update every 15 seconds
-
-        // Live indicator animation
-        setInterval(() => {
-            document.querySelector('.live-dot').style.opacity = 
-                document.querySelector('.live-dot').style.opacity === '0.3' ? '1' : '0.3';
-        }, 1000);
     </script>
 </body>
 </html> 

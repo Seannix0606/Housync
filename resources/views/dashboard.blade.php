@@ -13,29 +13,39 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-content">
-                <div class="nav-item active">
-                    <i class="fas fa-th-large"></i>
-                    <span>Dashboard</span>
+                <div class="nav-items-container">
+                    <div class="nav-item active">
+                        <i class="fas fa-th-large"></i>
+                        <span>Dashboard</span>
+                    </div>
+                    <div class="nav-item" onclick="window.location.href='{{ route('units') }}'">
+                        <i class="fas fa-building"></i>
+                        <span>Units</span>
+                    </div>
+                    <div class="nav-item" onclick="window.location.href='{{ route('tenants') }}'">
+                        <i class="fas fa-users"></i>
+                        <span>Tenants</span>
+                    </div>
+                    <div class="nav-item" onclick="window.location.href='{{ route('billing') }}'">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Billing</span>
+                    </div>
+                    <div class="nav-item" onclick="window.location.href='{{ route('messages') }}'">
+                        <i class="fas fa-envelope"></i>
+                        <span>Messages</span>
+                    </div>
+                    <div class="nav-item" onclick="window.location.href='{{ route('security') }}'">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Security Logs</span>
+                    </div>
                 </div>
-                <div class="nav-item" onclick="window.location.href='{{ route('units') }}'">
-                    <i class="fas fa-building"></i>
-                    <span>Units</span>
-                </div>
-                <div class="nav-item" onclick="window.location.href='{{ route('tenants') }}'">
-                    <i class="fas fa-users"></i>
-                    <span>Tenants</span>
-                </div>
-                <div class="nav-item" onclick="window.location.href='{{ route('billing') }}'">
-                    <i class="fas fa-credit-card"></i>
-                    <span>Billing</span>
-                </div>
-                <div class="nav-item" onclick="window.location.href='{{ route('messages') }}'">
-                    <i class="fas fa-envelope"></i>
-                    <span>Messages</span>
-                </div>
-                <div class="nav-item" onclick="window.location.href='{{ route('security') }}'">
-                    <i class="fas fa-shield-alt"></i>
-                    <span>Security Logs</span>
+                
+                <!-- Logout Button at Bottom -->
+                <div class="nav-bottom">
+                    <div class="nav-item logout-item" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -228,10 +238,32 @@
     </div>
 
     <script>
-        // Simple JavaScript for menu toggle
-        document.querySelector('.menu-toggle').addEventListener('click', function() {
-            document.querySelector('.sidebar').classList.toggle('collapsed');
+        // Enhanced JavaScript for menu toggle with persistence
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.querySelector('.sidebar');
+            const menuToggle = document.querySelector('.menu-toggle');
+            
+            // Restore sidebar state from localStorage
+            const sidebarState = localStorage.getItem('sidebarExpanded');
+            if (sidebarState === 'true') {
+                sidebar.classList.add('collapsed');
+            }
+            
+            // Toggle sidebar and save state
+            menuToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                const isExpanded = sidebar.classList.contains('collapsed');
+                localStorage.setItem('sidebarExpanded', isExpanded);
+            });
         });
+        
+        // Logout functionality
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Redirect to login page (logout route doesn't exist)
+                window.location.href = '{{ route("login") }}';
+            }
+        }
     </script>
 </body>
 </html> 

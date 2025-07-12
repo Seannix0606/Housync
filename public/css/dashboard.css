@@ -488,4 +488,81 @@ body {
     .activity-row .col {
         padding: 5px 0;
     }
+}
+
+/* ========================================= */
+/* IMPROVED SIDEBAR STATE MANAGEMENT */
+/* ========================================= */
+
+/* Enhanced sidebar state CSS - applies immediately before JavaScript */
+.sidebar-expanded .sidebar {
+    width: 250px !important;
+}
+
+.sidebar-expanded .main-content {
+    margin-left: 250px !important;
+}
+
+.sidebar-expanded .sidebar .nav-item span {
+    display: block !important;
+}
+
+/* Mobile responsive sidebar state */
+@media (max-width: 1024px) {
+    .sidebar-expanded .sidebar {
+        transform: translateX(0) !important;
+        width: 250px !important;
+    }
+    
+    .sidebar-expanded .main-content {
+        margin-left: 0 !important;
+    }
+}
+
+/* ========================================= */
+/* NAVIGATION STRUCTURE & LOGOUT BUTTON */
+/* ========================================= */
+
+/* Navigation structure */
+.sidebar-content {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 20px 0 0 0;
+}
+
+.nav-items-container {
+    flex: 1;
+    padding-bottom: 20px;
+}
+
+.nav-bottom {
+    margin-top: auto;
+    padding: 10px 0 20px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Logout button styles */
+.logout-item {
+    color: #ef4444 !important;
+    transition: all 0.3s ease;
+}
+
+.logout-item:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #f87171 !important;
+}
+
+.logout-item i {
+    color: #ef4444 !important;
+}
+
+.logout-item:hover i {
+    color: #f87171 !important;
+}
+
+/* Ensure logout text shows when sidebar is expanded */
+.sidebar-expanded .logout-item span,
+.sidebar.collapsed .logout-item span {
+    display: block !important;
 } 
