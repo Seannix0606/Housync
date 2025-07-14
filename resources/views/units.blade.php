@@ -4,11 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Units Management - HouSync</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('css/units.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <style>
+        .user-profile {
+            position: relative;
+            cursor: pointer;
+        }
+        .profile-dropdown {
+            position: absolute;
+            top: 110%;
+            right: 0;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            border-radius: 8px;
+            min-width: 180px;
+            z-index: 9999;
+            padding: 8px 0;
+            display: none;
+        }
+        .profile-dropdown.show, .user-profile .profile-dropdown.show {
+            display: block !important;
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            color: #374151;
+            text-decoration: none;
+            font-size: 15px;
+            transition: background 0.2s;
+        }
+        .dropdown-item:hover {
+            background: #f3f4f6;
+        }
+        .dropdown-divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 6px 0;
+        }
+        .dashboard-container, .main-content, .header-right {
+            overflow: visible !important;
+        }
+    </style>
 </head>
 <body>
     <div class="dashboard-container">
@@ -41,20 +85,14 @@
                         <span>Security</span>
                     </div>
                 </div>
-            </div>
-
-            <!-- User Profile -->
-            <div class="user-profile">
-                <div class="user-avatar">
-                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Admin">
+                
+                <!-- Logout Button at Bottom -->
+                <div class="nav-bottom">
+                    <div class="nav-item logout-item" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </div>
                 </div>
-                <div class="user-info">
-                    <span class="user-name">Admin User</span>
-                    <span class="user-role">Property Manager</span>
-                </div>
-                <button class="logout-btn" onclick="handleLogout()">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
             </div>
         </aside>
 
@@ -77,10 +115,21 @@
                     <button class="header-btn">
                         <i class="fas fa-bell"></i>
                     </button>
-                    <div class="user-profile">
+                    <div class="user-profile" id="userProfile">
                         <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face" alt="Ann Lee" class="profile-avatar">
                         <span class="profile-name">Ann Lee</span>
                         <i class="fas fa-chevron-down"></i>
+                        <!-- Dropdown Menu -->
+                        <div class="profile-dropdown" id="profileDropdown" style="display: none;">
+                            <a href="#" class="dropdown-item"><i class="fas fa-user"></i> My Profile</a>
+                            <a href="#" class="dropdown-item"><i class="fas fa-cog"></i> Account Settings</a>
+                            <a href="{{ route('dashboard') }}" class="dropdown-item"><i class="fas fa-th-large"></i> Dashboard</a>
+                            <a href="#" class="dropdown-item"><i class="fas fa-history"></i> My Activity</a>
+                            <a href="#" class="dropdown-item"><i class="fas fa-bell"></i> Notifications</a>
+                            <a href="#" class="dropdown-item"><i class="fas fa-question-circle"></i> Help & Support</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item" onclick="handleLogout(); return false;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -441,11 +490,13 @@
         });
 
         // CSRF token setup for AJAX requests
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
+        if (typeof $ !== 'undefined') {
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+        }
 
         // Filter Modal Functions
         function openFilterModal() {
@@ -528,9 +579,28 @@
                 closeAddUnitModal();
             }
         });
-    </script>
 
-    <!-- jQuery for AJAX (if not already included) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        // Profile dropdown logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const userProfile = document.getElementById('userProfile');
+            const profileDropdown = document.getElementById('profileDropdown');
+            let dropdownOpen = false;
+            if (userProfile && profileDropdown && !userProfile.classList.contains('dropdown-initialized')) {
+                userProfile.classList.add('dropdown-initialized');
+                userProfile.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdownOpen = !dropdownOpen;
+                    profileDropdown.classList.toggle('show', dropdownOpen);
+                    console.log('Profile dropdown toggled:', dropdownOpen);
+                });
+                document.addEventListener('click', function() {
+                    if (dropdownOpen) {
+                        profileDropdown.classList.remove('show');
+                        dropdownOpen = false;
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html> 
