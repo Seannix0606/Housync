@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UnitController;
+use App\Http\Controllers\AuthController;
 
 Route::get('/', function () {
     return view('index');
@@ -65,3 +66,6 @@ Route::get('/messages', function () {
 Route::get('/security', function () {
     return view('security');
 })->name('security');
+
+// Authentication routes
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

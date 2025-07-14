@@ -371,7 +371,21 @@
         // Logout functionality
         function handleLogout() {
             if (confirm('Are you sure you want to logout?')) {
-                window.location.href = '{{ route("login") }}';
+                // Create a form to submit the logout request
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ route("logout") }}';
+                
+                // Add CSRF token
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                form.appendChild(csrfToken);
+                
+                // Submit the form
+                document.body.appendChild(form);
+                form.submit();
             }
         }
 
