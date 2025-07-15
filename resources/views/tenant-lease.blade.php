@@ -274,10 +274,6 @@
                                 <i class="fas fa-redo"></i>
                                 Request Lease Renewal
                             </button>
-                            <button class="tenant-btn-primary" style="width: 100%; margin-bottom: 12px;" onclick="requestModification()">
-                                <i class="fas fa-edit"></i>
-                                Request Modification
-                            </button>
                             <button style="width: 100%; padding: 12px; border: 1px solid #ef4444; background: white; color: #ef4444; border-radius: 6px; cursor: pointer;" onclick="noticeToVacate()">
                                 <i class="fas fa-door-open"></i>
                                 Notice to Vacate

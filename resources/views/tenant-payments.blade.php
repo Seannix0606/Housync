@@ -181,14 +181,6 @@
 
                         <div class="payment-card">
                             <h4 style="margin: 0 0 16px 0;">Quick Actions</h4>
-                            <button class="tenant-btn-primary" style="width: 100%; margin-bottom: 12px;" onclick="setupAutoPayment()">
-                                <i class="fas fa-sync-alt"></i>
-                                Setup Auto-Payment
-                            </button>
-                            <button class="tenant-btn-primary" style="width: 100%; margin-bottom: 12px;" onclick="paymentSettings()">
-                                <i class="fas fa-cog"></i>
-                                Payment Settings
-                            </button>
                             <button class="tenant-btn-primary" style="width: 100%;" onclick="downloadAllReceipts()">
                                 <i class="fas fa-download"></i>
                                 Download All Receipts
