@@ -11,7 +11,7 @@ class Unit extends Model
 
     protected $fillable = [
         'unit_number',
-        'owner_name',
+        'apartment_id',
         'unit_type',
         'rent_amount',
         'status',
@@ -35,6 +35,18 @@ class Unit extends Model
         'bedrooms' => 'integer',
         'bathrooms' => 'integer',
     ];
+
+    // Relationships
+    public function apartment()
+    {
+        return $this->belongsTo(Apartment::class);
+    }
+
+    // Helper method to get landlord through apartment
+    public function getLandlord()
+    {
+        return $this->apartment ? $this->apartment->landlord : null;
+    }
 
     // Scopes for filtering
     public function scopeAvailable($query)

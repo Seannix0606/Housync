@@ -1,61 +1,125 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# HouseSync - Property Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A comprehensive property management system built with Laravel, designed for landlords to manage their apartments and units efficiently.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### 🏢 **Multi-Role System**
+- **Super Admin**: System administration and landlord approvals
+- **Landlord**: Property and unit management
+- **Tenant**: Access to rental information and services
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 🏠 **Property Management**
+- **Apartment Management**: Create and manage apartment buildings
+- **Unit Management**: Track individual rental units
+- **Occupancy Tracking**: Monitor unit availability and occupancy rates
+- **Revenue Tracking**: Calculate rental income and statistics
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 👥 **User Management**
+- **Landlord Registration**: Self-registration with admin approval
+- **Role-Based Access Control**: Secure access based on user roles
+- **Status Management**: Pending, approved, rejected user states
 
-## Learning Laravel
+## Installation
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd Housesync
+   ```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+2. **Install dependencies**
+   ```bash
+   composer install
+   npm install
+   ```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+3. **Environment Setup**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-## Laravel Sponsors
+4. **Database Setup**
+   ```bash
+   php artisan migrate
+   php artisan db:seed
+   ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+5. **Start the application**
+   ```bash
+   php artisan serve
+   ```
 
-### Premium Partners
+## Default Credentials
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Super Admin
+- **Email**: `admin@housesync.com`
+- **Password**: `admin123`
+
+*Note: Change these credentials immediately after first login*
+
+## Usage
+
+### For Landlords
+1. **Register**: Visit `/landlord/register` to create an account
+2. **Wait for Approval**: Admin must approve your registration
+3. **Manage Properties**: Add apartments and units after approval
+4. **Track Performance**: Monitor occupancy and revenue
+
+### For Super Admins
+1. **Login**: Use admin credentials to access the system
+2. **Approve Landlords**: Review and approve pending registrations
+3. **Manage Users**: Create, edit, and manage all system users
+4. **Monitor System**: View system-wide statistics and reports
+
+## Security Features
+
+- **Role-Based Access Control**: Secure route protection
+- **Authentication Middleware**: Protected admin and landlord areas
+- **Input Validation**: Comprehensive form validation
+- **CSRF Protection**: Built-in Laravel CSRF protection
+
+## Technology Stack
+
+- **Backend**: Laravel 11.x
+- **Frontend**: Blade Templates, HTML5, CSS3, JavaScript
+- **Database**: MySQL/SQLite
+- **Authentication**: Laravel Auth
+- **Styling**: Custom CSS with modern design
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+This is a production application. For feature requests or bug reports, please contact the development team.
 
-## Code of Conduct
+## Firebase Integration
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+HouseSync supports Firebase integration for enhanced features like real-time notifications, cloud storage, and authentication.
 
-## Security Vulnerabilities
+### Setup Firebase
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+1. **Enable PHP Sodium Extension** (required for Firebase PHP SDK)
+2. **Install Firebase PHP SDK**: `composer require kreait/firebase-php`
+3. **Configure Firebase project** in Firebase Console
+4. **Add Firebase credentials** to your `.env` file
+
+For detailed setup instructions, see [FIREBASE_SETUP.md](FIREBASE_SETUP.md)
+
+### Test Firebase Connection
+
+After setup, test your Firebase connection by visiting:
+```
+http://your-domain/test-firebase
+```
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Proprietary - All rights reserved.
+
+## Support
+
+For technical support, please contact the system administrator.
+
+---
+
+**HouseSync** - Streamlining Property Management

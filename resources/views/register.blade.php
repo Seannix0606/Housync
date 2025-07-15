@@ -52,7 +52,8 @@
                     <p class="subtitle">Manage all your inventory efficiently</p>
                     <p class="description">Let's get you all set up so you can verify your personal account and begin setting up your work profile</p>
                     
-                    <form class="auth-form register-form" onsubmit="redirectToDashboard(event)">
+                    <form class="auth-form register-form" method="POST" action="{{ route('register.post') }}">
+                        @csrf
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="first_name">First name</label>
@@ -97,13 +98,7 @@
     </div>
 
     <script>
-        function redirectToDashboard(event) {
-            event.preventDefault(); // Prevent form submission
-            // Add a small delay to show the button press effect
-            setTimeout(function() {
-                window.location.href = "{{ route('dashboard') }}";
-            }, 200);
-        }
+        // Registration form is handled by Laravel backend
     </script>
 </body>
 </html> 

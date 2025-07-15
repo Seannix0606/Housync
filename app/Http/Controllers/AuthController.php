@@ -5,9 +5,82 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class AuthController extends Controller
 {
+    /**
+     * Show the login form
+     */
+    public function showLogin()
+    {
+        return view('login');
+    }
+
+    /**
+     * Handle login request
+     */
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+            $request->session()->regenerate();
+            
+            // Redirect based on user role
+            $user = Auth::user();
+            switch ($user->role) {
+                case 'super_admin':
+                    return redirect()->route('super-admin.dashboard');
+                case 'landlord':
+                    if ($user->status === 'approved') {
+                        return redirect()->route('landlord.dashboard');
+                    } elseif ($user->status === 'pending') {
+                        return redirect()->route('landlord.pending');
+                    } else {
+                        return redirect()->route('landlord.rejected');
+                    }
+                case 'tenant':
+                    return redirect()->route('tenant.dashboard');
+                default:
+                    return redirect()->route('dashboard');
+            }
+        }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
+    }
+
+    /**
+     * Handle tenant registration
+     */
+    public function register(Request $request)
+    {
+        $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+        ]);
+
+        $user = User::create([
+            'name' => $request->first_name . ' ' . $request->last_name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'role' => 'tenant',
+            'status' => 'active',
+        ]);
+
+        Auth::login($user);
+
+        return redirect()->route('tenant.dashboard');
+    }
+
     /**
      * Handle user logout
      */
