@@ -274,10 +274,6 @@
                                 <i class="fas fa-redo"></i>
                                 Request Lease Renewal
                             </button>
-                            <button class="tenant-btn-primary" style="width: 100%; margin-bottom: 12px;" onclick="scheduleInspection()">
-                                <i class="fas fa-search"></i>
-                                Schedule Inspection
-                            </button>
                             <button class="tenant-btn-primary" style="width: 100%; margin-bottom: 12px;" onclick="requestModification()">
                                 <i class="fas fa-edit"></i>
                                 Request Modification
@@ -339,10 +335,6 @@
             if (confirm('Would you like to request a lease renewal? This will send a notification to your landlord.')) {
                 alert('Lease renewal request has been sent to your landlord. You will receive a response within 5-7 business days.');
             }
-        }
-
-        function scheduleInspection() {
-            alert('Opening inspection scheduling form...');
         }
 
         function requestModification() {

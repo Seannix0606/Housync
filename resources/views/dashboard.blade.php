@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         .user-profile {
             position: relative;
@@ -189,7 +190,6 @@
                             <h2>Month of July</h2>
                             <div class="action-buttons">
                                 <button class="btn btn-outline">Export to excel</button>
-                                <button class="btn btn-primary">+ Add Documents</button>
                             </div>
                         </div>
 

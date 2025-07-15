@@ -514,7 +514,7 @@
                             <div class="device-list">
                                 <div class="device-item">
                                     <div class="device-info">
-                                        <i class="fas fa-door-open"></i>
+                                        <i class="fas fa-door-closed"></i>
                                         <div>
                                             <span class="device-name">Main Gate Reader</span>
                                             <span class="device-id">DEV-GATE-01</span>
@@ -522,35 +522,7 @@
                                     </div>
                                     <div class="device-status-indicator online">
                                         <span class="status-dot"></span>
-                                        <span>Online</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="device-item">
-                                    <div class="device-info">
-                                        <i class="fas fa-video"></i>
-                                        <div>
-                                            <span class="device-name">Security Camera</span>
-                                            <span class="device-id">CAM-GATE-01</span>
-                                        </div>
-                                    </div>
-                                    <div class="device-status-indicator online">
-                                        <span class="status-dot"></span>
-                                        <span>Online</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="device-item">
-                                    <div class="device-info">
-                                        <i class="fas fa-lock"></i>
-                                        <div>
-                                            <span class="device-name">Electronic Lock</span>
-                                            <span class="device-id">LOCK-GATE-01</span>
-                                        </div>
-                                    </div>
-                                    <div class="device-status-indicator online">
-                                        <span class="status-dot"></span>
-                                        <span>Secured</span>
+                                        <span>Online/Locked</span>
                                     </div>
                                 </div>
                                 
