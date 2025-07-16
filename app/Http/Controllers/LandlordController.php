@@ -63,18 +63,26 @@ class LandlordController extends Controller
             'amenities' => 'nullable|array',
         ]);
 
-        $apartment = Auth::user()->apartments()->create([
-            'name' => $request->name,
-            'address' => $request->address,
-            'description' => $request->description,
-            'total_units' => $request->total_units,
-            'contact_person' => $request->contact_person,
-            'contact_phone' => $request->contact_phone,
-            'contact_email' => $request->contact_email,
-            'amenities' => $request->amenities ?? [],
-        ]);
+        try {
+            $apartment = Auth::user()->apartments()->create([
+                'name' => $request->name,
+                'address' => $request->address,
+                'description' => $request->description,
+                'total_units' => $request->total_units,
+                'contact_person' => $request->contact_person,
+                'contact_phone' => $request->contact_phone,
+                'contact_email' => $request->contact_email,
+                'amenities' => $request->amenities ?? [],
+                'status' => 'active',
+            ]);
 
-        return redirect()->route('landlord.apartments')->with('success', 'Apartment created successfully.');
+            // Firebase sync is automatically handled by the model's FirebaseSyncTrait
+            
+            return redirect()->route('landlord.apartments')->with('success', 'Apartment created successfully and synced to Firebase.');
+        } catch (\Exception $e) {
+            \Log::error('Error creating apartment: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Failed to create apartment. Please try again.');
+        }
     }
 
     public function editApartment($id)
@@ -96,28 +104,51 @@ class LandlordController extends Controller
             'contact_phone' => 'nullable|string|max:20',
             'contact_email' => 'nullable|email|max:255',
             'amenities' => 'nullable|array',
+            'status' => 'required|in:active,inactive,maintenance',
         ]);
 
-        $apartment->update([
-            'name' => $request->name,
-            'address' => $request->address,
-            'description' => $request->description,
-            'total_units' => $request->total_units,
-            'contact_person' => $request->contact_person,
-            'contact_phone' => $request->contact_phone,
-            'contact_email' => $request->contact_email,
-            'amenities' => $request->amenities ?? [],
-        ]);
+        try {
+            $apartment->update([
+                'name' => $request->name,
+                'address' => $request->address,
+                'description' => $request->description,
+                'total_units' => $request->total_units,
+                'contact_person' => $request->contact_person,
+                'contact_phone' => $request->contact_phone,
+                'contact_email' => $request->contact_email,
+                'amenities' => $request->amenities ?? [],
+                'status' => $request->status,
+            ]);
 
-        return redirect()->route('landlord.apartments')->with('success', 'Apartment updated successfully.');
+            // Firebase sync is automatically handled by the model's FirebaseSyncTrait
+            
+            return redirect()->route('landlord.apartments')->with('success', 'Apartment updated successfully and synced to Firebase.');
+        } catch (\Exception $e) {
+            \Log::error('Error updating apartment: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Failed to update apartment. Please try again.');
+        }
     }
 
     public function deleteApartment($id)
     {
         $apartment = Auth::user()->apartments()->findOrFail($id);
-        $apartment->delete();
-
-        return back()->with('success', 'Apartment deleted successfully.');
+        
+        try {
+            // Check if apartment has units
+            if ($apartment->units()->count() > 0) {
+                return back()->with('error', 'Cannot delete apartment with existing units. Please remove all units first.');
+            }
+            
+            $apartmentName = $apartment->name;
+            $apartment->delete();
+            
+            // Firebase deletion is automatically handled by the model's FirebaseSyncTrait
+            
+            return back()->with('success', "Apartment '{$apartmentName}' deleted successfully and removed from Firebase.");
+        } catch (\Exception $e) {
+            \Log::error('Error deleting apartment: ' . $e->getMessage());
+            return back()->with('error', 'Failed to delete apartment. Please try again.');
+        }
     }
 
     public function units($apartmentId = null)
@@ -208,53 +239,9 @@ class LandlordController extends Controller
             'business_info' => $request->business_info,
         ]);
 
-        // Also save to Firebase
-        $this->saveToFirebase($landlord);
+        // Firebase sync is now handled automatically by the model
 
         return redirect()->route('landlord.pending')->with('success', 'Registration submitted successfully. Please wait for admin approval.');
-    }
-
-    private function saveToFirebase($landlord)
-    {
-        try {
-            $databaseUrl = 'https://housesync-dd86e-default-rtdb.firebaseio.com/';
-            
-            // Prepare landlord data for Firebase
-            $firebaseData = [
-                'id' => $landlord->id,
-                'name' => $landlord->name,
-                'email' => $landlord->email,
-                'phone' => $landlord->phone,
-                'address' => $landlord->address,
-                'business_info' => $landlord->business_info,
-                'role' => $landlord->role,
-                'status' => $landlord->status,
-                'registered_at' => now()->toISOString(),
-                'created_at' => $landlord->created_at->toISOString(),
-                'updated_at' => $landlord->updated_at->toISOString(),
-            ];
-            
-            // Save to Firebase using HTTP request
-            $firebaseUrl = $databaseUrl . 'landlords/' . $landlord->id . '.json';
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'PUT',
-                    'header' => 'Content-Type: application/json',
-                    'content' => json_encode($firebaseData)
-                ]
-            ]);
-            
-            $result = file_get_contents($firebaseUrl, false, $context);
-            
-            if ($result === false) {
-                \Log::warning('Failed to save landlord to Firebase: ' . $landlord->email);
-            } else {
-                \Log::info('Landlord saved to Firebase successfully: ' . $landlord->email);
-            }
-            
-        } catch (\Exception $e) {
-            \Log::error('Error saving landlord to Firebase: ' . $e->getMessage());
-        }
     }
 
     public function pending()

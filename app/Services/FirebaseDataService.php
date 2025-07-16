@@ -8,6 +8,8 @@ use Exception;
 class FirebaseDataService
 {
     private $databaseUrl;
+    private $maxRetries = 3;
+    private $retryDelay = 1; // seconds
 
     public function __construct()
     {
@@ -15,114 +17,179 @@ class FirebaseDataService
     }
 
     /**
-     * Generic method to save data to Firebase
+     * Generic method to save data to Firebase with retry logic
      */
     public function saveToFirebase($path, $data, $id = null)
     {
-        try {
-            $firebaseUrl = $this->databaseUrl . $path;
-            
-            if ($id) {
-                $firebaseUrl .= '/' . $id;
+        $attempt = 0;
+        
+        while ($attempt < $this->maxRetries) {
+            try {
+                $firebaseUrl = $this->databaseUrl . $path;
+                
+                if ($id) {
+                    $firebaseUrl .= '/' . $id;
+                }
+                
+                $firebaseUrl .= '.json';
+                
+                $context = stream_context_create([
+                    'http' => [
+                        'method' => 'PUT',
+                        'header' => 'Content-Type: application/json',
+                        'content' => json_encode($data),
+                        'timeout' => 30
+                    ]
+                ]);
+                
+                $result = file_get_contents($firebaseUrl, false, $context);
+                
+                if ($result === false) {
+                    throw new Exception("Failed to save data to Firebase: {$path}");
+                }
+                
+                Log::info("Data saved to Firebase successfully: {$path}" . ($id ? "/{$id}" : ''));
+                return true;
+                
+            } catch (Exception $e) {
+                $attempt++;
+                Log::warning("Attempt {$attempt} failed to save data to Firebase: " . $e->getMessage());
+                
+                if ($attempt >= $this->maxRetries) {
+                    Log::error("Failed to save data to Firebase after {$this->maxRetries} attempts: {$path}");
+                    return false;
+                }
+                
+                sleep($this->retryDelay);
             }
-            
-            $firebaseUrl .= '.json';
-            
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'PUT',
-                    'header' => 'Content-Type: application/json',
-                    'content' => json_encode($data)
-                ]
-            ]);
-            
-            $result = file_get_contents($firebaseUrl, false, $context);
-            
-            if ($result === false) {
-                Log::warning("Failed to save data to Firebase: {$path}");
-                return false;
-            }
-            
-            Log::info("Data saved to Firebase successfully: {$path}");
-            return true;
-            
-        } catch (Exception $e) {
-            Log::error("Error saving data to Firebase: " . $e->getMessage());
-            return false;
         }
+        
+        return false;
     }
 
     /**
-     * Generic method to get data from Firebase
+     * Generic method to get data from Firebase with retry logic
      */
     public function getFromFirebase($path, $id = null)
     {
-        try {
-            $firebaseUrl = $this->databaseUrl . $path;
-            
-            if ($id) {
-                $firebaseUrl .= '/' . $id;
+        $attempt = 0;
+        
+        while ($attempt < $this->maxRetries) {
+            try {
+                $firebaseUrl = $this->databaseUrl . $path;
+                
+                if ($id) {
+                    $firebaseUrl .= '/' . $id;
+                }
+                
+                $firebaseUrl .= '.json';
+                
+                $context = stream_context_create([
+                    'http' => [
+                        'timeout' => 30
+                    ]
+                ]);
+                
+                $result = file_get_contents($firebaseUrl, false, $context);
+                
+                if ($result === false) {
+                    throw new Exception("Failed to get data from Firebase: {$path}");
+                }
+                
+                return json_decode($result, true);
+                
+            } catch (Exception $e) {
+                $attempt++;
+                Log::warning("Attempt {$attempt} failed to get data from Firebase: " . $e->getMessage());
+                
+                if ($attempt >= $this->maxRetries) {
+                    Log::error("Failed to get data from Firebase after {$this->maxRetries} attempts: {$path}");
+                    return null;
+                }
+                
+                sleep($this->retryDelay);
             }
-            
-            $firebaseUrl .= '.json';
-            
-            $result = file_get_contents($firebaseUrl);
-            
-            if ($result === false) {
-                Log::warning("Failed to get data from Firebase: {$path}");
-                return null;
-            }
-            
-            return json_decode($result, true);
-            
-        } catch (Exception $e) {
-            Log::error("Error getting data from Firebase: " . $e->getMessage());
-            return null;
         }
+        
+        return null;
     }
 
     /**
-     * Generic method to delete data from Firebase
+     * Generic method to delete data from Firebase with retry logic
      */
     public function deleteFromFirebase($path, $id = null)
     {
-        try {
-            $firebaseUrl = $this->databaseUrl . $path;
-            
-            if ($id) {
-                $firebaseUrl .= '/' . $id;
+        $attempt = 0;
+        
+        while ($attempt < $this->maxRetries) {
+            try {
+                $firebaseUrl = $this->databaseUrl . $path;
+                
+                if ($id) {
+                    $firebaseUrl .= '/' . $id;
+                }
+                
+                $firebaseUrl .= '.json';
+                
+                $context = stream_context_create([
+                    'http' => [
+                        'method' => 'DELETE',
+                        'timeout' => 30
+                    ]
+                ]);
+                
+                $result = file_get_contents($firebaseUrl, false, $context);
+                
+                if ($result === false) {
+                    throw new Exception("Failed to delete data from Firebase: {$path}");
+                }
+                
+                Log::info("Data deleted from Firebase successfully: {$path}" . ($id ? "/{$id}" : ''));
+                return true;
+                
+            } catch (Exception $e) {
+                $attempt++;
+                Log::warning("Attempt {$attempt} failed to delete data from Firebase: " . $e->getMessage());
+                
+                if ($attempt >= $this->maxRetries) {
+                    Log::error("Failed to delete data from Firebase after {$this->maxRetries} attempts: {$path}");
+                    return false;
+                }
+                
+                sleep($this->retryDelay);
             }
-            
-            $firebaseUrl .= '.json';
-            
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'DELETE'
-                ]
-            ]);
-            
-            $result = file_get_contents($firebaseUrl, false, $context);
-            
-            if ($result === false) {
-                Log::warning("Failed to delete data from Firebase: {$path}");
-                return false;
-            }
-            
-            Log::info("Data deleted from Firebase successfully: {$path}");
-            return true;
-            
-        } catch (Exception $e) {
-            Log::error("Error deleting data from Firebase: " . $e->getMessage());
-            return false;
         }
+        
+        return false;
     }
 
     /**
-     * Save user data to Firebase
+     * Save user data to Firebase based on role
      */
     public function saveUser($user)
     {
-        $userData = [
+        $userData = $this->prepareUserData($user);
+        
+        // Save to main users collection
+        $mainSave = $this->saveToFirebase('users', $userData, $user->id);
+        
+        // Save to role-specific collection
+        $roleSave = $this->saveToFirebase($user->role . 's', $userData, $user->id);
+        
+        // For landlords, also save to landlords collection for backward compatibility
+        if ($user->role === 'landlord') {
+            $this->saveToFirebase('landlords', $userData, $user->id);
+        }
+        
+        return $mainSave && $roleSave;
+    }
+
+    /**
+     * Prepare user data for Firebase
+     */
+    private function prepareUserData($user)
+    {
+        return [
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
@@ -138,8 +205,6 @@ class FirebaseDataService
             'created_at' => $user->created_at->toISOString(),
             'updated_at' => $user->updated_at->toISOString(),
         ];
-
-        return $this->saveToFirebase('users', $userData, $user->id);
     }
 
     /**
@@ -147,7 +212,23 @@ class FirebaseDataService
      */
     public function saveApartment($apartment)
     {
-        $apartmentData = [
+        $apartmentData = $this->prepareApartmentData($apartment);
+
+        // Save to main apartments collection
+        $mainSave = $this->saveToFirebase('apartments', $apartmentData, $apartment->id);
+        
+        // Also save under landlord's apartments
+        $landlordSave = $this->saveToFirebase("landlords/{$apartment->landlord_id}/apartments", $apartmentData, $apartment->id);
+        
+        return $mainSave && $landlordSave;
+    }
+
+    /**
+     * Prepare apartment data for Firebase
+     */
+    private function prepareApartmentData($apartment)
+    {
+        return [
             'id' => $apartment->id,
             'name' => $apartment->name,
             'address' => $apartment->address,
@@ -158,15 +239,10 @@ class FirebaseDataService
             'contact_phone' => $apartment->contact_phone,
             'contact_email' => $apartment->contact_email,
             'amenities' => $apartment->amenities,
+            'status' => $apartment->status,
             'created_at' => $apartment->created_at->toISOString(),
             'updated_at' => $apartment->updated_at->toISOString(),
         ];
-
-        // Save to main apartments collection
-        $this->saveToFirebase('apartments', $apartmentData, $apartment->id);
-        
-        // Also save under landlord's apartments
-        return $this->saveToFirebase("landlords/{$apartment->landlord_id}/apartments", $apartmentData, $apartment->id);
     }
 
     /**
@@ -174,7 +250,30 @@ class FirebaseDataService
      */
     public function saveUnit($unit)
     {
-        $unitData = [
+        $unitData = $this->prepareUnitData($unit);
+
+        // Save to main units collection
+        $mainSave = $this->saveToFirebase('units', $unitData, $unit->id);
+        
+        // Also save under apartment's units
+        $apartmentSave = $this->saveToFirebase("apartments/{$unit->apartment_id}/units", $unitData, $unit->id);
+        
+        // Also save under landlord's units (get landlord_id from apartment)
+        $apartment = \App\Models\Apartment::find($unit->apartment_id);
+        $landlordSave = true;
+        if ($apartment) {
+            $landlordSave = $this->saveToFirebase("landlords/{$apartment->landlord_id}/units", $unitData, $unit->id);
+        }
+        
+        return $mainSave && $apartmentSave && $landlordSave;
+    }
+
+    /**
+     * Prepare unit data for Firebase
+     */
+    private function prepareUnitData($unit)
+    {
+        return [
             'id' => $unit->id,
             'apartment_id' => $unit->apartment_id,
             'unit_number' => $unit->unit_number,
@@ -182,6 +281,7 @@ class FirebaseDataService
             'rent_amount' => $unit->rent_amount,
             'status' => $unit->status,
             'leasing_type' => $unit->leasing_type,
+            'tenant_count' => $unit->tenant_count,
             'description' => $unit->description,
             'floor_area' => $unit->floor_area,
             'bedrooms' => $unit->bedrooms,
@@ -192,28 +292,31 @@ class FirebaseDataService
             'created_at' => $unit->created_at->toISOString(),
             'updated_at' => $unit->updated_at->toISOString(),
         ];
-
-        // Save to main units collection
-        $this->saveToFirebase('units', $unitData, $unit->id);
-        
-        // Also save under apartment's units
-        $this->saveToFirebase("apartments/{$unit->apartment_id}/units", $unitData, $unit->id);
-        
-        // Also save under landlord's units (get landlord_id from apartment)
-        $apartment = \App\Models\Apartment::find($unit->apartment_id);
-        if ($apartment) {
-            return $this->saveToFirebase("landlords/{$apartment->landlord_id}/units", $unitData, $unit->id);
-        }
-        
-        return true;
     }
 
     /**
      * Delete user from Firebase
      */
-    public function deleteUser($userId)
+    public function deleteUser($user)
     {
-        return $this->deleteFromFirebase('users', $userId);
+        $userId = is_object($user) ? $user->id : $user;
+        $role = is_object($user) ? $user->role : null;
+        
+        // Delete from main users collection
+        $mainDelete = $this->deleteFromFirebase('users', $userId);
+        
+        // Delete from role-specific collection if role is known
+        $roleDelete = true;
+        if ($role) {
+            $roleDelete = $this->deleteFromFirebase($role . 's', $userId);
+            
+            // For landlords, also delete from landlords collection
+            if ($role === 'landlord') {
+                $this->deleteFromFirebase('landlords', $userId);
+            }
+        }
+        
+        return $mainDelete && $roleDelete;
     }
 
     /**
@@ -221,19 +324,27 @@ class FirebaseDataService
      */
     public function deleteApartment($apartment)
     {
+        $apartmentId = is_object($apartment) ? $apartment->id : $apartment;
+        $landlordId = is_object($apartment) ? $apartment->landlord_id : null;
+        
         // Delete from main apartments collection
-        $this->deleteFromFirebase('apartments', $apartment->id);
+        $mainDelete = $this->deleteFromFirebase('apartments', $apartmentId);
         
-        // Delete from landlord's apartments
-        $this->deleteFromFirebase("landlords/{$apartment->landlord_id}/apartments", $apartment->id);
-        
-        // Delete all units of this apartment
-        $units = \App\Models\Unit::where('apartment_id', $apartment->id)->get();
-        foreach ($units as $unit) {
-            $this->deleteUnit($unit);
+        // Delete from landlord's apartments if landlord_id is known
+        $landlordDelete = true;
+        if ($landlordId) {
+            $landlordDelete = $this->deleteFromFirebase("landlords/{$landlordId}/apartments", $apartmentId);
         }
         
-        return true;
+        // Delete all units of this apartment
+        if (is_object($apartment)) {
+            $units = \App\Models\Unit::where('apartment_id', $apartmentId)->get();
+            foreach ($units as $unit) {
+                $this->deleteUnit($unit);
+            }
+        }
+        
+        return $mainDelete && $landlordDelete;
     }
 
     /**
@@ -241,19 +352,28 @@ class FirebaseDataService
      */
     public function deleteUnit($unit)
     {
+        $unitId = is_object($unit) ? $unit->id : $unit;
+        $apartmentId = is_object($unit) ? $unit->apartment_id : null;
+        
         // Delete from main units collection
-        $this->deleteFromFirebase('units', $unit->id);
+        $mainDelete = $this->deleteFromFirebase('units', $unitId);
         
-        // Delete from apartment's units
-        $this->deleteFromFirebase("apartments/{$unit->apartment_id}/units", $unit->id);
-        
-        // Delete from landlord's units
-        $apartment = \App\Models\Apartment::find($unit->apartment_id);
-        if ($apartment) {
-            $this->deleteFromFirebase("landlords/{$apartment->landlord_id}/units", $unit->id);
+        // Delete from apartment's units if apartment_id is known
+        $apartmentDelete = true;
+        if ($apartmentId) {
+            $apartmentDelete = $this->deleteFromFirebase("apartments/{$apartmentId}/units", $unitId);
         }
         
-        return true;
+        // Delete from landlord's units
+        $landlordDelete = true;
+        if (is_object($unit)) {
+            $apartment = \App\Models\Apartment::find($unit->apartment_id);
+            if ($apartment) {
+                $landlordDelete = $this->deleteFromFirebase("landlords/{$apartment->landlord_id}/units", $unitId);
+            }
+        }
+        
+        return $mainDelete && $apartmentDelete && $landlordDelete;
     }
 
     /**
@@ -270,6 +390,14 @@ class FirebaseDataService
     public function getAllUsers()
     {
         return $this->getFromFirebase('users');
+    }
+
+    /**
+     * Get users by role
+     */
+    public function getUsersByRole($role)
+    {
+        return $this->getFromFirebase($role . 's');
     }
 
     /**
@@ -310,9 +438,9 @@ class FirebaseDataService
     public function syncAllData()
     {
         $results = [
-            'users' => 0,
-            'apartments' => 0,
-            'units' => 0,
+            'users' => ['success' => 0, 'failed' => 0],
+            'apartments' => ['success' => 0, 'failed' => 0],
+            'units' => ['success' => 0, 'failed' => 0],
             'errors' => []
         ];
 
@@ -321,8 +449,9 @@ class FirebaseDataService
             $users = \App\Models\User::all();
             foreach ($users as $user) {
                 if ($this->saveUser($user)) {
-                    $results['users']++;
+                    $results['users']['success']++;
                 } else {
+                    $results['users']['failed']++;
                     $results['errors'][] = "Failed to sync user: {$user->email}";
                 }
             }
@@ -331,8 +460,9 @@ class FirebaseDataService
             $apartments = \App\Models\Apartment::all();
             foreach ($apartments as $apartment) {
                 if ($this->saveApartment($apartment)) {
-                    $results['apartments']++;
+                    $results['apartments']['success']++;
                 } else {
+                    $results['apartments']['failed']++;
                     $results['errors'][] = "Failed to sync apartment: {$apartment->name}";
                 }
             }
@@ -341,8 +471,9 @@ class FirebaseDataService
             $units = \App\Models\Unit::all();
             foreach ($units as $unit) {
                 if ($this->saveUnit($unit)) {
-                    $results['units']++;
+                    $results['units']['success']++;
                 } else {
+                    $results['units']['failed']++;
                     $results['errors'][] = "Failed to sync unit: {$unit->unit_number}";
                 }
             }
@@ -352,5 +483,26 @@ class FirebaseDataService
         }
 
         return $results;
+    }
+
+    /**
+     * Validate Firebase connection
+     */
+    public function testConnection()
+    {
+        try {
+            $testData = ['test' => 'connection', 'timestamp' => now()->toISOString()];
+            $result = $this->saveToFirebase('test', $testData);
+            
+            if ($result) {
+                $this->deleteFromFirebase('test');
+                return true;
+            }
+            
+            return false;
+        } catch (Exception $e) {
+            Log::error("Firebase connection test failed: " . $e->getMessage());
+            return false;
+        }
     }
 } 

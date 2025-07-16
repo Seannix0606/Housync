@@ -123,4 +123,18 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Firebase Sync Configuration
+    |--------------------------------------------------------------------------
+    |
+    | These configuration options determine how Firebase synchronization
+    | behaves in your application. You can enable/disable sync globally
+    | or for specific environments.
+    |
+    */
+
+    'firebase_sync_enabled' => env('FIREBASE_SYNC_ENABLED', true),
+    'firebase_sync_in_tests' => env('FIREBASE_SYNC_IN_TESTS', false),
+
 ];

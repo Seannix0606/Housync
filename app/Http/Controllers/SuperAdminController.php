@@ -48,8 +48,7 @@ class SuperAdminController extends Controller
 
         $landlord->approve(Auth::id());
 
-        // Update Firebase
-        $this->updateFirebaseLandlord($landlord);
+        // Firebase sync is now handled automatically by the model
 
         return back()->with('success', 'Landlord approved successfully.');
     }
@@ -68,8 +67,7 @@ class SuperAdminController extends Controller
 
         $landlord->reject(Auth::id(), $request->reason);
 
-        // Update Firebase
-        $this->updateFirebaseLandlord($landlord);
+        // Firebase sync is now handled automatically by the model
 
         return back()->with('success', 'Landlord rejected successfully.');
     }
@@ -159,51 +157,5 @@ class SuperAdminController extends Controller
     {
         $apartments = Apartment::with('landlord')->latest()->paginate(15);
         return view('super-admin.apartments', compact('apartments'));
-    }
-
-    private function updateFirebaseLandlord($landlord)
-    {
-        try {
-            $databaseUrl = 'https://housesync-dd86e-default-rtdb.firebaseio.com/';
-            
-            // Prepare updated landlord data for Firebase
-            $firebaseData = [
-                'id' => $landlord->id,
-                'name' => $landlord->name,
-                'email' => $landlord->email,
-                'phone' => $landlord->phone,
-                'address' => $landlord->address,
-                'business_info' => $landlord->business_info,
-                'role' => $landlord->role,
-                'status' => $landlord->status,
-                'approved_at' => $landlord->approved_at ? $landlord->approved_at->toISOString() : null,
-                'approved_by' => $landlord->approved_by,
-                'rejection_reason' => $landlord->rejection_reason,
-                'registered_at' => $landlord->created_at->toISOString(),
-                'created_at' => $landlord->created_at->toISOString(),
-                'updated_at' => $landlord->updated_at->toISOString(),
-            ];
-            
-            // Update Firebase using HTTP request
-            $firebaseUrl = $databaseUrl . 'landlords/' . $landlord->id . '.json';
-            $context = stream_context_create([
-                'http' => [
-                    'method' => 'PUT',
-                    'header' => 'Content-Type: application/json',
-                    'content' => json_encode($firebaseData)
-                ]
-            ]);
-            
-            $result = file_get_contents($firebaseUrl, false, $context);
-            
-            if ($result === false) {
-                \Log::warning('Failed to update landlord in Firebase: ' . $landlord->email);
-            } else {
-                \Log::info('Landlord updated in Firebase successfully: ' . $landlord->email);
-            }
-            
-        } catch (\Exception $e) {
-            \Log::error('Error updating landlord in Firebase: ' . $e->getMessage());
-        }
     }
 }

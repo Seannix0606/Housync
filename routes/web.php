@@ -8,8 +8,8 @@ use App\Http\Controllers\LandlordController;
 use App\Services\FirebaseService;
 
 Route::get('/', function () {
-    return view('index');
-})->name('home');
+    return redirect()->route('login');
+});
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');

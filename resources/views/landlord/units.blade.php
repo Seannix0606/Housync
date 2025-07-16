@@ -24,6 +24,15 @@
                 <a href="{{ route('landlord.units') }}" class="nav-item active">
                     <i class="fas fa-door-open"></i> My Units
                 </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-users"></i> Tenants
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-dollar-sign"></i> Payments
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-tools"></i> Maintenance
+                </a>
             </nav>
             <div class="sidebar-footer">
                 <a href="{{ route('logout') }}" class="logout-btn" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">

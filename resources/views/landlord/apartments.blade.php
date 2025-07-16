@@ -24,6 +24,15 @@
                 <a href="{{ route('landlord.units') }}" class="nav-item">
                     <i class="fas fa-door-open"></i> My Units
                 </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-users"></i> Tenants
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-dollar-sign"></i> Payments
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-tools"></i> Maintenance
+                </a>
             </nav>
             <div class="sidebar-footer">
                 <a href="{{ route('logout') }}" class="logout-btn" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
@@ -44,6 +53,12 @@
             @if(session('success'))
                 <div class="alert alert-success">
                     {{ session('success') }}
+                </div>
+            @endif
+
+            @if(session('error'))
+                <div class="alert alert-error">
+                    {{ session('error') }}
                 </div>
             @endif
 
@@ -87,6 +102,13 @@
                                     <a href="{{ route('landlord.units', $apartment->id) }}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-door-open"></i> View Units
                                     </a>
+                                    <form method="POST" action="{{ route('landlord.delete-apartment', $apartment->id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this apartment? This action cannot be undone.')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         @endforeach
@@ -378,6 +400,15 @@
             font-size: 14px;
         }
         
+        .btn-danger {
+            background-color: #dc2626;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+        
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -410,6 +441,12 @@
             background-color: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
         
         .pagination-container {
