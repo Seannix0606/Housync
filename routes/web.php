@@ -55,6 +55,11 @@ Route::middleware(['role:landlord'])->prefix('landlord')->name('landlord.')->gro
     Route::get('/units/{apartmentId?}', [LandlordController::class, 'units'])->name('units');
     Route::get('/apartments/{apartmentId}/units/create', [LandlordController::class, 'createUnit'])->name('create-unit');
     Route::post('/apartments/{apartmentId}/units', [LandlordController::class, 'storeUnit'])->name('store-unit');
+    
+    // API endpoints for apartment management
+    Route::get('/apartments/{id}/details', [LandlordController::class, 'getApartmentDetails'])->name('apartment-details');
+    Route::get('/apartments/{id}/units', [LandlordController::class, 'getApartmentUnits'])->name('apartment-units');
+    Route::post('/apartments/{apartmentId}/units', [LandlordController::class, 'storeApartmentUnit'])->name('store-apartment-unit');
 });
 
 // Original dashboard route - redirect based on role

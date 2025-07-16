@@ -18,6 +18,8 @@ class Unit extends Model
         'status',
         'leasing_type',
         'tenant_count',
+        'max_occupants',
+        'floor_number',
         'description',
         'floor_area',
         'bedrooms',
@@ -33,6 +35,8 @@ class Unit extends Model
         'is_furnished' => 'boolean',
         'amenities' => 'array',
         'tenant_count' => 'integer',
+        'max_occupants' => 'integer',
+        'floor_number' => 'integer',
         'bedrooms' => 'integer',
         'bathrooms' => 'integer',
     ];

@@ -254,4 +254,97 @@ class LandlordController extends Controller
         $user = Auth::user();
         return view('landlord.rejected', compact('user'));
     }
+
+    // API endpoints for apartment management
+    public function getApartmentDetails($id)
+    {
+        $apartment = Auth::user()->apartments()->with('units')->findOrFail($id);
+        
+        return response()->json([
+            'id' => $apartment->id,
+            'name' => $apartment->name,
+            'total_units' => $apartment->units->count(),
+            'occupied_units' => $apartment->getOccupiedUnitsCount(),
+            'available_units' => $apartment->getAvailableUnitsCount(),
+            'maintenance_units' => $apartment->getMaintenanceUnitsCount(),
+            'occupancy_rate' => $apartment->getOccupancyRate(),
+            'total_revenue' => $apartment->getTotalRevenue(),
+        ]);
+    }
+
+    public function getApartmentUnits($id)
+    {
+        $apartment = Auth::user()->apartments()->findOrFail($id);
+        $units = $apartment->units()->orderBy('unit_number')->get();
+        
+        return response()->json([
+            'units' => $units->map(function($unit) {
+                return [
+                    'id' => $unit->id,
+                    'unit_number' => $unit->unit_number,
+                    'unit_type' => $unit->unit_type,
+                    'rent_amount' => $unit->rent_amount,
+                    'status' => $unit->status,
+                    'bedrooms' => $unit->bedrooms,
+                    'bathrooms' => $unit->bathrooms,
+                    'max_occupants' => $unit->max_occupants ?? $unit->tenant_count,
+                    'floor_number' => $unit->floor_number ?? 1,
+                    'floor_area' => $unit->floor_area,
+                    'amenities' => $unit->amenities,
+                    'description' => $unit->description,
+                ];
+            })
+        ]);
+    }
+
+    public function storeApartmentUnit(Request $request, $apartmentId)
+    {
+        $apartment = Auth::user()->apartments()->findOrFail($apartmentId);
+
+        $request->validate([
+            'unit_number' => 'required|string|max:50|unique:units,unit_number',
+            'unit_type' => 'required|string|max:100',
+            'rent_amount' => 'required|numeric|min:0',
+            'bedrooms' => 'required|integer|min:0',
+            'bathrooms' => 'required|integer|min:1',
+            'max_occupants' => 'required|integer|min:1',
+            'floor_number' => 'nullable|integer|min:1',
+            'floor_area' => 'nullable|numeric|min:0',
+            'description' => 'nullable|string|max:1000',
+            'amenities' => 'nullable|array',
+        ]);
+
+        try {
+            $unit = $apartment->units()->create([
+                'unit_number' => $request->unit_number,
+                'unit_type' => $request->unit_type,
+                'rent_amount' => $request->rent_amount,
+                'status' => 'available',
+                'leasing_type' => 'separate',
+                'bedrooms' => $request->bedrooms,
+                'bathrooms' => $request->bathrooms,
+                'tenant_count' => 0,
+                'max_occupants' => $request->max_occupants,
+                'floor_number' => $request->floor_number ?? 1,
+                'floor_area' => $request->floor_area,
+                'description' => $request->description,
+                'amenities' => $request->amenities ?? [],
+                'is_furnished' => in_array('furnished', $request->amenities ?? []),
+            ]);
+
+            // Firebase sync is automatically handled by the model's FirebaseSyncTrait
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Unit created successfully and synced to Firebase.',
+                'unit' => $unit
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error creating unit: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create unit. Please try again.'
+            ], 500);
+        }
+    }
 }
