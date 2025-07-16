@@ -264,6 +264,25 @@ Route::get('/test-firebase-simple', function () {
     }
 });
 
+// Firebase App Check configuration endpoint
+Route::get('/firebase-config', function () {
+    $firebaseService = app(FirebaseService::class);
+    $config = $firebaseService->getAppCheckConfig();
+    
+    return response()->json([
+        'firebase_config' => [
+            'apiKey' => env('FIREBASE_WEB_API_KEY'),
+            'authDomain' => env('FIREBASE_AUTH_DOMAIN'),
+            'databaseURL' => env('FIREBASE_DATABASE_URL'),
+            'projectId' => env('FIREBASE_PROJECT_ID'),
+            'storageBucket' => env('FIREBASE_STORAGE_BUCKET'),
+            'messagingSenderId' => env('FIREBASE_MESSAGING_SENDER_ID'),
+            'appId' => env('FIREBASE_APP_ID')
+        ],
+        'app_check_config' => $config
+    ]);
+})->name('firebase-config');
+
 // Firebase direct HTTP test route
 Route::get('/test-firebase-http', function () {
     try {

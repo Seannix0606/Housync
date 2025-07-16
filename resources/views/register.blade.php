@@ -100,5 +100,7 @@
     <script>
         // Registration form is handled by Laravel backend
     </script>
+    
+    @include('partials.firebase-scripts')
 </body>
 </html> 
