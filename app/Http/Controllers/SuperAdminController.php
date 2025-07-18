@@ -28,7 +28,28 @@ class SuperAdminController extends Controller
 
     public function users()
     {
-        $users = User::with('approvedBy')->latest()->paginate(15);
+        $query = User::with('approvedBy');
+        
+        // Search by name or email
+        if (request('search')) {
+            $search = request('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%');
+            });
+        }
+        
+        // Filter by role
+        if (request('role')) {
+            $query->where('role', request('role'));
+        }
+        
+        // Filter by status
+        if (request('status')) {
+            $query->where('status', request('status'));
+        }
+        
+        $users = $query->latest()->paginate(15);
         return view('super-admin.users', compact('users'));
     }
 
@@ -155,7 +176,28 @@ class SuperAdminController extends Controller
 
     public function apartments()
     {
-        $apartments = Apartment::with('landlord')->latest()->paginate(15);
+        $query = Apartment::with('landlord', 'units');
+        
+        // Search by apartment name or address
+        if (request('search')) {
+            $search = request('search');
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('address', 'like', '%' . $search . '%');
+            });
+        }
+        
+        // Filter by status
+        if (request('status')) {
+            $query->where('status', request('status'));
+        }
+        
+        // Filter by landlord
+        if (request('landlord')) {
+            $query->where('landlord_id', request('landlord'));
+        }
+        
+        $apartments = $query->latest()->paginate(15);
         return view('super-admin.apartments', compact('apartments'));
     }
 }
