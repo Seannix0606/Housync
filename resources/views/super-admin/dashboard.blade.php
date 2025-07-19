@@ -4,32 +4,412 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Admin Dashboard - Housesync</title>
-    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles - Blue Theme */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-header p {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1.5rem 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.5rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: #60a5fa;
+        }
+
+        .nav-item.active {
+            background-color: #3b82f6;
+            color: white;
+            border-left-color: #60a5fa;
+        }
+
+        .nav-item i {
+            width: 20px;
+            margin-right: 0.75rem;
+            font-size: 1rem;
+        }
+
+        .badge {
+            background-color: #ef4444;
+            color: white;
+            border-radius: 9999px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 0.875rem;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .logout-btn i {
+            margin-right: 0.5rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .content-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 0.75rem;
+        }
+
+        .user-info h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .user-info p {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        /* Welcome Section */
+        .welcome-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .welcome-section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-section p {
+            color: #64748b;
+            font-size: 1rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-sublabel {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        /* Activity Section */
+        .activity-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            color: white;
+        }
+
+        .btn-primary i {
+            margin-right: 0.5rem;
+        }
+
+        /* Activity Table */
+        .activity-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .activity-table th {
+            text-align: left;
+            padding: 1rem 0.5rem;
+            border-bottom: 2px solid #f1f5f9;
+            color: #64748b;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .activity-table td {
+            padding: 1rem 0.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.875rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-approved {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .status-active {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 1rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            color: #1e293b;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .action-btn:last-child {
+            margin-bottom: 0;
+        }
+
+        .action-btn i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border: 1px solid #a7f3d0;
+            color: #047857;
+        }
+    </style>
 </head>
 <body>
     <div class="dashboard-container">
+        <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <h2>Super Admin</h2>
-                <p>{{ auth()->user()->name }}</p>
+                <h2>Super Admin Portal</h2>
+                <p>System Administrator</p>
             </div>
             <nav class="sidebar-nav">
                 <a href="{{ route('super-admin.dashboard') }}" class="nav-item active">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                    <i class="fas fa-home"></i> My Dashboard
                 </a>
                 <a href="{{ route('super-admin.pending-landlords') }}" class="nav-item">
-                    <i class="fas fa-user-clock"></i> Pending Landlords
+                    <i class="fas fa-user-clock"></i> Pending Approvals
                     @if($stats['pending_landlords'] > 0)
                         <span class="badge">{{ $stats['pending_landlords'] }}</span>
                     @endif
                 </a>
                 <a href="{{ route('super-admin.users') }}" class="nav-item">
-                    <i class="fas fa-users"></i> All Users
+                    <i class="fas fa-users"></i> User Management
                 </a>
                 <a href="{{ route('super-admin.apartments') }}" class="nav-item">
-                    <i class="fas fa-building"></i> Apartments
+                    <i class="fas fa-building"></i> Properties
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-chart-bar"></i> Analytics
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-cog"></i> System Settings
                 </a>
             </nav>
             <div class="sidebar-footer">
@@ -42,432 +422,136 @@
             </div>
         </div>
 
+        <!-- Main Content -->
         <div class="main-content">
+            <!-- Header -->
             <div class="content-header">
-                <h1>Dashboard Overview</h1>
-                <p>Welcome back, {{ auth()->user()->name }}!</p>
+                <h1>Super Admin Portal</h1>
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        {{ substr(auth()->user()->name, 0, 1) }}
+                    </div>
+                    <div class="user-info">
+                        <h3>{{ auth()->user()->name }}</h3>
+                        <p>System Administrator</p>
+                    </div>
+                </div>
             </div>
 
             @if(session('success'))
                 <div class="alert alert-success">
-                    {{ session('success') }}
+                    <i class="fas fa-check-circle"></i> {{ session('success') }}
                 </div>
             @endif
 
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+                <h2>Welcome back, {{ explode(' ', auth()->user()->name)[0] }}!</h2>
+                <p>Here's what's happening in your system today</p>
+            </div>
+
+            <!-- Stats Grid -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>{{ $stats['total_users'] }}</h3>
-                        <p>Total Users</p>
-                    </div>
+                    <div class="stat-value">{{ $stats['total_users'] }}</div>
+                    <div class="stat-label">Total Users</div>
+                    <div class="stat-sublabel">Across all roles</div>
                 </div>
-                
                 <div class="stat-card">
-                    <div class="stat-icon pending">
-                        <i class="fas fa-user-clock"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>{{ $stats['pending_landlords'] }}</h3>
-                        <p>Pending Landlords</p>
-                    </div>
+                    <div class="stat-value">{{ $stats['pending_landlords'] }}</div>
+                    <div class="stat-label">Pending Approvals</div>
+                    <div class="stat-sublabel">Require your attention</div>
                 </div>
-                
                 <div class="stat-card">
-                    <div class="stat-icon approved">
-                        <i class="fas fa-user-check"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>{{ $stats['approved_landlords'] }}</h3>
-                        <p>Approved Landlords</p>
-                    </div>
+                    <div class="stat-value">{{ $stats['approved_landlords'] }}</div>
+                    <div class="stat-label">Active Landlords</div>
+                    <div class="stat-sublabel">Approved & verified</div>
                 </div>
-                
                 <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-building"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>{{ $stats['total_apartments'] }}</h3>
-                        <p>Total Apartments</p>
-                    </div>
+                    <div class="stat-value">{{ $stats['total_apartments'] }}</div>
+                    <div class="stat-label">Total Properties</div>
+                    <div class="stat-sublabel">In the system</div>
                 </div>
             </div>
 
-            @if($pendingLandlords->count() > 0)
-                <div class="section">
+            <!-- Content Grid -->
+            <div class="content-grid">
+                <!-- Recent Activity -->
+                <div class="activity-section">
                     <div class="section-header">
-                        <h2>Pending Landlord Approvals</h2>
-                        <a href="{{ route('super-admin.pending-landlords') }}" class="btn btn-primary">View All</a>
+                        <h3 class="section-title">Recent Activity</h3>
+                        <a href="{{ route('super-admin.users') }}" class="btn-primary">
+                            <i class="fas fa-eye"></i> View All
+                        </a>
                     </div>
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Phone</th>
-                                    <th>Registered</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($pendingLandlords as $landlord)
-                                    <tr>
-                                        <td>{{ $landlord->name }}</td>
-                                        <td>{{ $landlord->email }}</td>
-                                        <td>{{ $landlord->phone }}</td>
-                                        <td>{{ $landlord->created_at->format('M d, Y') }}</td>
-                                        <td>
-                                            <form method="POST" action="{{ route('super-admin.approve-landlord', $landlord->id) }}" style="display: inline;">
-                                                @csrf
-                                                <button type="submit" class="btn btn-success btn-sm">Approve</button>
-                                            </form>
-                                            <button class="btn btn-danger btn-sm" onclick="rejectLandlord({{ $landlord->id }})">Reject</button>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            @endif
-
-            <div class="section">
-                <div class="section-header">
-                    <h2>Recent Users</h2>
-                    <a href="{{ route('super-admin.users') }}" class="btn btn-primary">View All</a>
-                </div>
-                <div class="table-container">
-                    <table class="data-table">
+                    
+                    <table class="activity-table">
                         <thead>
                             <tr>
-                                <th>Name</th>
-                                <th>Email</th>
+                                <th>Date</th>
+                                <th>User</th>
                                 <th>Role</th>
                                 <th>Status</th>
-                                <th>Joined</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($recentUsers as $user)
-                                <tr>
-                                    <td>{{ $user->name }}</td>
-                                    <td>{{ $user->email }}</td>
-                                    <td>
-                                        <span class="badge badge-{{ $user->role }}">{{ ucfirst($user->role) }}</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge badge-{{ $user->status }}">{{ ucfirst($user->status) }}</span>
-                                    </td>
-                                    <td>{{ $user->created_at->format('M d, Y') }}</td>
-                                </tr>
+                            @foreach($recentUsers->take(5) as $user)
+                            <tr>
+                                <td>{{ $user->created_at->format('M j, Y') }}</td>
+                                <td>{{ $user->name }}</td>
+                                <td class="text-capitalize">{{ str_replace('_', ' ', $user->role) }}</td>
+                                <td>
+                                    @if($user->role === 'landlord')
+                                        @if($user->status === 'pending')
+                                            <span class="status-badge status-pending">Pending</span>
+                                        @elseif($user->status === 'approved')
+                                            <span class="status-badge status-approved">Approved</span>
+                                        @else
+                                            <span class="status-badge status-active">{{ ucfirst($user->status) }}</span>
+                                        @endif
+                                    @else
+                                        <span class="status-badge status-active">Active</span>
+                                    @endif
+                                </td>
+                            </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h3 class="section-title" style="margin-bottom: 1.5rem;">Quick Actions</h3>
+                    
+                    <a href="{{ route('super-admin.create-user') }}" class="action-btn">
+                        <i class="fas fa-user-plus"></i> Add New User
+                    </a>
+                    
+                    <a href="{{ route('super-admin.pending-landlords') }}" class="action-btn">
+                        <i class="fas fa-user-check"></i> Review Approvals
+                    </a>
+                    
+                    <a href="{{ route('super-admin.apartments') }}" class="action-btn">
+                        <i class="fas fa-building"></i> Manage Properties
+                    </a>
+                    
+                    <a href="{{ route('super-admin.users') }}" class="action-btn">
+                        <i class="fas fa-users-cog"></i> User Management
+                    </a>
+
+                    @if($stats['pending_landlords'] > 0)
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: #fef3c7; border-radius: 0.5rem; border-left: 4px solid #f59e0b;">
+                        <h4 style="color: #d97706; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">
+                            <i class="fas fa-exclamation-triangle"></i> Attention Required
+                        </h4>
+                        <p style="color: #92400e; font-size: 0.75rem; margin: 0;">
+                            You have {{ $stats['pending_landlords'] }} landlord{{ $stats['pending_landlords'] > 1 ? 's' : '' }} waiting for approval.
+                        </p>
+                    </div>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f9fafb;
-        }
-        
-        .dashboard-container {
-            display: flex;
-            min-height: 100vh;
-        }
-        
-        .sidebar {
-            width: 250px;
-            background-color: #1f2937;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100vh;
-            z-index: 1000;
-        }
-        
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid #374151;
-        }
-        
-        .sidebar-header h2 {
-            margin: 0;
-            font-size: 18px;
-        }
-        
-        .sidebar-header p {
-            margin: 5px 0 0 0;
-            font-size: 14px;
-            color: #9ca3af;
-        }
-        
-        .sidebar-nav {
-            flex: 1;
-            padding: 20px 0;
-        }
-        
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            color: #d1d5db;
-            text-decoration: none;
-            transition: background-color 0.2s;
-        }
-        
-        .nav-item:hover, .nav-item.active {
-            background-color: #374151;
-            color: white;
-        }
-        
-        .nav-item i {
-            margin-right: 10px;
-            width: 16px;
-        }
-        
-        .badge {
-            background-color: #ef4444;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 12px;
-            margin-left: auto;
-        }
-        
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid #374151;
-        }
-        
-        .logout-btn {
-            display: flex;
-            align-items: center;
-            color: #d1d5db;
-            text-decoration: none;
-            padding: 10px;
-            border-radius: 6px;
-            transition: background-color 0.2s;
-        }
-        
-        .logout-btn:hover {
-            background-color: #374151;
-        }
-        
-        .logout-btn i {
-            margin-right: 8px;
-        }
-        
-        .main-content {
-            flex: 1;
-            margin-left: 250px;
-            padding: 20px;
-            background-color: #f9fafb;
-            min-height: 100vh;
-        }
-        
-        .content-header {
-            margin-bottom: 30px;
-        }
-        
-        .content-header h1 {
-            margin: 0;
-            color: #1f2937;
-        }
-        
-        .content-header p {
-            margin: 5px 0 0 0;
-            color: #6b7280;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-        }
-        
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 8px;
-            background-color: #3b82f6;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-        }
-        
-        .stat-icon.pending {
-            background-color: #f59e0b;
-        }
-        
-        .stat-icon.approved {
-            background-color: #10b981;
-        }
-        
-        .stat-info h3 {
-            margin: 0;
-            font-size: 24px;
-            color: #1f2937;
-        }
-        
-        .stat-info p {
-            margin: 5px 0 0 0;
-            color: #6b7280;
-        }
-        
-        .section {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .section-header h2 {
-            margin: 0;
-            color: #1f2937;
-        }
-        
-        .table-container {
-            overflow-x: auto;
-        }
-        
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .data-table th,
-        .data-table td {
-            padding: 12px 20px;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .data-table th {
-            background-color: #f9fafb;
-            color: #374151;
-            font-weight: 600;
-        }
-        
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        
-        .btn-primary {
-            background-color: #3b82f6;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background-color: #2563eb;
-        }
-        
-        .btn-success {
-            background-color: #10b981;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background-color: #059669;
-        }
-        
-        .btn-danger {
-            background-color: #ef4444;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background-color: #dc2626;
-        }
-        
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 14px;
-            margin-right: 5px;
-        }
-        
-        .badge-super_admin {
-            background-color: #7c3aed;
-        }
-        
-        .badge-landlord {
-            background-color: #3b82f6;
-        }
-        
-        .badge-tenant {
-            background-color: #10b981;
-        }
-        
-        .badge-pending {
-            background-color: #f59e0b;
-        }
-        
-        .badge-approved {
-            background-color: #10b981;
-        }
-        
-        .badge-active {
-            background-color: #10b981;
-        }
-        
-        .badge-rejected {
-            background-color: #ef4444;
-        }
-        
-        .alert {
-            padding: 12px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-    </style>
 </body>
 </html> 

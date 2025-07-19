@@ -6,20 +6,441 @@
     <title>Landlord Dashboard - Housesync</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles - Orange Theme */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #ea580c 0%, #dc2626 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 2rem 1.5rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-header p {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1.5rem 0;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.5rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: #fb923c;
+        }
+
+        .nav-item.active {
+            background-color: #f97316;
+            color: white;
+            border-left-color: #fb923c;
+        }
+
+        .nav-item i {
+            width: 20px;
+            margin-right: 0.75rem;
+            font-size: 1rem;
+        }
+
+        .badge-count {
+            background-color: #ef4444;
+            color: white;
+            border-radius: 9999px;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 0.875rem;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 0.5rem;
+            color: white;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+        .logout-btn i {
+            margin-right: 0.5rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .content-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            margin-right: 0.75rem;
+        }
+
+        .user-info h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .user-info p {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        /* Welcome Section */
+        .welcome-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #f97316;
+        }
+
+        .welcome-section h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-section p {
+            color: #64748b;
+            font-size: 1rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #f97316;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-sublabel {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        /* Revenue highlight */
+        .revenue-card {
+            border-left-color: #10b981;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+        }
+
+        .revenue-value {
+            color: #059669;
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        /* Activity Section */
+        .activity-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .btn-primary {
+            background: #f97316;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #ea580c;
+            color: white;
+        }
+
+        .btn-primary i {
+            margin-right: 0.5rem;
+        }
+
+        /* Activity Table */
+        .activity-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .activity-table th {
+            text-align: left;
+            padding: 1rem 0.5rem;
+            border-bottom: 2px solid #f1f5f9;
+            color: #64748b;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .activity-table td {
+            padding: 1rem 0.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.875rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-available {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .status-occupied {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .status-maintenance {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 1rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            color: #1e293b;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #f97316;
+            border-color: #f97316;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .action-btn:last-child {
+            margin-bottom: 0;
+        }
+
+        .action-btn i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border: 1px solid #a7f3d0;
+            color: #047857;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+
+        /* Property Summary Card */
+        .property-summary {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .occupancy-rate {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: #fef7ff;
+            border-radius: 0.5rem;
+            border-left: 4px solid #a855f7;
+        }
+
+        .occupancy-percentage {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #a855f7;
+        }
+
+        .occupancy-label {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+    </style>
 </head>
 <body>
     <div class="dashboard-container">
+        <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
-                <h2>Landlord Panel</h2>
-                <p>{{ auth()->user()->name }}</p>
+                <h2>Landlord Portal</h2>
+                <p>Property Manager</p>
             </div>
             <nav class="sidebar-nav">
                 <a href="{{ route('landlord.dashboard') }}" class="nav-item active">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                    <i class="fas fa-home"></i> My Dashboard
                 </a>
                 <a href="{{ route('landlord.apartments') }}" class="nav-item">
-                    <i class="fas fa-building"></i> My Apartments
+                    <i class="fas fa-building"></i> My Properties
                     @if(isset($stats['total_apartments']))
                         <span class="badge-count">{{ $stats['total_apartments'] }}</span>
                     @endif
@@ -34,10 +455,13 @@
                     <i class="fas fa-users"></i> Tenants
                 </a>
                 <a href="#" class="nav-item">
-                    <i class="fas fa-dollar-sign"></i> Payments
+                    <i class="fas fa-credit-card"></i> Payments
                 </a>
                 <a href="#" class="nav-item">
                     <i class="fas fa-tools"></i> Maintenance
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-chart-line"></i> Reports
                 </a>
             </nav>
             <div class="sidebar-footer">
@@ -50,591 +474,198 @@
             </div>
         </div>
 
+        <!-- Main Content -->
         <div class="main-content">
+            <!-- Header -->
             <div class="content-header">
-                <h1>Dashboard Overview</h1>
-                <p>Welcome back, {{ auth()->user()->name }}!</p>
+                <h1>Landlord Portal</h1>
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        {{ substr(auth()->user()->name, 0, 1) }}
+                    </div>
+                    <div class="user-info">
+                        <h3>{{ auth()->user()->name }}</h3>
+                        <p>Property Manager</p>
+                    </div>
+                </div>
             </div>
 
             @if(session('success'))
                 <div class="alert alert-success">
-                    {{ session('success') }}
+                    <i class="fas fa-check-circle"></i> {{ session('success') }}
                 </div>
             @endif
 
             @if(session('error'))
                 <div class="alert alert-error">
-                    {{ session('error') }}
+                    <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
                 </div>
             @endif
 
+            <!-- Welcome Section -->
+            <div class="welcome-section">
+                <h2>Welcome back, {{ explode(' ', auth()->user()->name)[0] }}!</h2>
+                <p>Here's an overview of your property portfolio</p>
+            </div>
+
+            <!-- Stats Grid -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-building"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>{{ $stats['total_apartments'] ?? 0 }}</h3>
-                        <p>Total Apartments</p>
-                    </div>
+                    <div class="stat-value">{{ $stats['total_apartments'] ?? 0 }}</div>
+                    <div class="stat-label">Total Properties</div>
+                    <div class="stat-sublabel">In your portfolio</div>
                 </div>
-                
                 <div class="stat-card">
-                    <div class="stat-icon units">
-                        <i class="fas fa-door-open"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>{{ $stats['total_units'] ?? 0 }}</h3>
-                        <p>Total Units</p>
-                    </div>
+                    <div class="stat-value">{{ $stats['total_units'] ?? 0 }}</div>
+                    <div class="stat-label">Total Units</div>
+                    <div class="stat-sublabel">Available for rent</div>
                 </div>
-                
                 <div class="stat-card">
-                    <div class="stat-icon occupied">
-                        <i class="fas fa-user-check"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>{{ $stats['occupied_units'] ?? 0 }}</h3>
-                        <p>Occupied Units</p>
-                    </div>
+                    <div class="stat-value">{{ $stats['occupied_units'] ?? 0 }}</div>
+                    <div class="stat-label">Occupied Units</div>
+                    <div class="stat-sublabel">Currently rented</div>
                 </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon available">
-                        <i class="fas fa-door-closed"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>{{ $stats['available_units'] ?? 0 }}</h3>
-                        <p>Available Units</p>
-                    </div>
-                </div>
-                
-                <div class="stat-card revenue">
-                    <div class="stat-icon revenue">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>₱{{ number_format($stats['total_revenue'] ?? 0, 2) }}</h3>
-                        <p>Monthly Revenue</p>
-                    </div>
+                <div class="stat-card revenue-card">
+                    <div class="stat-value revenue-value">₱{{ number_format($stats['total_revenue'] ?? 0, 0) }}</div>
+                    <div class="stat-label">Monthly Revenue</div>
+                    <div class="stat-sublabel">From occupied units</div>
                 </div>
             </div>
 
-            @if(isset($apartments) && $apartments->count() > 0)
-                <div class="section">
-                    <div class="section-header">
-                        <h2>My Apartments</h2>
-                        <a href="{{ route('landlord.apartments') }}" class="btn btn-primary">View All</a>
+            <!-- Occupancy Rate Summary -->
+            @if(($stats['total_units'] ?? 0) > 0)
+            <div class="property-summary">
+                <div class="occupancy-rate">
+                    <div>
+                        <div class="occupancy-percentage">{{ round((($stats['occupied_units'] ?? 0) / $stats['total_units']) * 100) }}%</div>
+                        <div class="occupancy-label">Occupancy Rate</div>
                     </div>
-                    <div class="apartments-grid">
-                        @foreach($apartments as $apartment)
-                            <div class="apartment-card">
-                                <div class="apartment-header">
-                                    <h3>{{ $apartment->name }}</h3>
-                                    <span class="status-badge status-{{ $apartment->status }}">
-                                        {{ ucfirst($apartment->status) }}
-                                    </span>
-                                </div>
-                                <div class="apartment-info">
-                                    <p><i class="fas fa-map-marker-alt"></i> {{ Str::limit($apartment->address, 50) }}</p>
-                                    <p><i class="fas fa-door-open"></i> {{ $apartment->units->count() }} units</p>
-                                    <p><i class="fas fa-users"></i> {{ $apartment->getOccupiedUnitsCount() }} occupied</p>
-                                </div>
-                                <div class="apartment-stats">
-                                    <div class="stat-item">
-                                        <span class="stat-label">Occupancy</span>
-                                        <span class="stat-value">{{ $apartment->getOccupancyRate() }}%</span>
-                                    </div>
-                                    <div class="stat-item">
-                                        <span class="stat-label">Revenue</span>
-                                        <span class="stat-value">₱{{ number_format($apartment->getTotalRevenue(), 2) }}</span>
-                                    </div>
-                                </div>
-                                <div class="apartment-actions">
-                                    <a href="{{ route('landlord.edit-apartment', $apartment->id) }}" class="btn btn-sm btn-outline">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                    <a href="{{ route('landlord.units', $apartment->id) }}" class="btn btn-sm btn-primary">
-                                        <i class="fas fa-door-open"></i> View Units
-                                    </a>
-                                </div>
-                            </div>
-                        @endforeach
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.875rem; color: #64748b;">
+                            {{ $stats['occupied_units'] ?? 0 }} of {{ $stats['total_units'] }} units occupied
+                        </div>
+                        <div style="font-size: 0.75rem; color: #94a3b8;">
+                            {{ $stats['available_units'] ?? 0 }} units available
+                        </div>
                     </div>
                 </div>
-            @else
-                <div class="section">
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="fas fa-building"></i>
-                        </div>
-                        <h3>No Apartments Yet</h3>
-                        <p>Start by adding your first apartment to manage your properties.</p>
-                        <a href="{{ route('landlord.create-apartment') }}" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Add First Apartment
+            </div>
+            @endif
+
+            <!-- Content Grid -->
+            <div class="content-grid">
+                <!-- Recent Units -->
+                <div class="activity-section">
+                    <div class="section-header">
+                        <h3 class="section-title">Recent Units</h3>
+                        <a href="{{ route('landlord.units') }}" class="btn-primary">
+                            <i class="fas fa-eye"></i> View All
                         </a>
                     </div>
-                </div>
-            @endif
-
-            @if(isset($recentUnits) && $recentUnits->count() > 0)
-                <div class="section">
-                    <div class="section-header">
-                        <h2>Recent Units</h2>
-                        <a href="{{ route('landlord.units') }}" class="btn btn-primary">View All</a>
-                    </div>
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
+                    
+                    <table class="activity-table">
+                        <thead>
+                            <tr>
+                                <th>Unit</th>
+                                <th>Property</th>
+                                <th>Status</th>
+                                <th>Rent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if(isset($recentUnits) && count($recentUnits) > 0)
+                                @foreach($recentUnits->take(5) as $unit)
                                 <tr>
-                                    <th>Unit Number</th>
-                                    <th>Apartment</th>
-                                    <th>Type</th>
-                                    <th>Rent</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
+                                    <td>{{ $unit->unit_number }}</td>
+                                    <td>{{ $unit->apartment->name ?? 'N/A' }}</td>
+                                    <td>
+                                        @if($unit->status === 'available')
+                                            <span class="status-badge status-available">Available</span>
+                                        @elseif($unit->status === 'occupied')
+                                            <span class="status-badge status-occupied">Occupied</span>
+                                        @else
+                                            <span class="status-badge status-maintenance">Maintenance</span>
+                                        @endif
+                                    </td>
+                                    <td>₱{{ number_format($unit->rent_amount ?? 0, 0) }}</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($recentUnits as $unit)
-                                    <tr>
-                                        <td>{{ $unit->unit_number }}</td>
-                                        <td>{{ $unit->apartment->name ?? 'N/A' }}</td>
-                                        <td>{{ $unit->unit_type }}</td>
-                                        <td>₱{{ number_format($unit->rent_amount, 2) }}</td>
-                                        <td>
-                                            <span class="status-badge status-{{ $unit->status }}">
-                                                {{ ucfirst($unit->status) }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <a href="#" class="btn btn-sm btn-outline">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </a>
-                                        </td>
-                                    </tr>
                                 @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                            @else
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: #64748b; padding: 2rem;">
+                                        No units found. <a href="{{ route('landlord.create-apartment') }}" style="color: #f97316;">Add your first property</a>
+                                    </td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
                 </div>
-            @endif
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h3 class="section-title" style="margin-bottom: 1.5rem;">Quick Actions</h3>
+                    
+                    <a href="{{ route('landlord.create-apartment') }}" class="action-btn">
+                        <i class="fas fa-plus-circle"></i> Add New Property
+                    </a>
+                    
+                    <a href="{{ route('landlord.apartments') }}" class="action-btn">
+                        <i class="fas fa-building"></i> Manage Properties
+                    </a>
+                    
+                    <a href="{{ route('landlord.units') }}" class="action-btn">
+                        <i class="fas fa-door-open"></i> Manage Units
+                    </a>
+                    
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-chart-bar"></i> View Reports
+                    </a>
+                    
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-users"></i> Tenant Directory
+                    </a>
+
+                    <!-- Property Performance -->
+                    @if(($stats['total_units'] ?? 0) > 0)
+                    <div style="margin-top: 1.5rem;">
+                        <h4 style="font-size: 0.875rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Portfolio Summary</h4>
+                        
+                        <div style="padding: 1rem; background: #f0f9ff; border-radius: 0.5rem; border-left: 4px solid #0ea5e9; margin-bottom: 0.75rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.75rem; color: #0369a1;">Available Units</span>
+                                <span style="font-weight: 600; color: #0369a1;">{{ $stats['available_units'] ?? 0 }}</span>
+                            </div>
+                        </div>
+
+                        <div style="padding: 1rem; background: #f0fdf4; border-radius: 0.5rem; border-left: 4px solid #10b981; margin-bottom: 0.75rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.75rem; color: #047857;">Occupied Units</span>
+                                <span style="font-weight: 600; color: #047857;">{{ $stats['occupied_units'] ?? 0 }}</span>
+                            </div>
+                        </div>
+
+                        @if(($stats['total_units'] - $stats['occupied_units'] - $stats['available_units']) > 0)
+                        <div style="padding: 1rem; background: #fffbeb; border-radius: 0.5rem; border-left: 4px solid #f59e0b;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.75rem; color: #d97706;">Maintenance</span>
+                                <span style="font-weight: 600; color: #d97706;">{{ $stats['total_units'] - $stats['occupied_units'] - $stats['available_units'] }}</span>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                    @else
+                    <div style="margin-top: 1.5rem; padding: 1rem; background: #fef3c7; border-radius: 0.5rem; border-left: 4px solid #f59e0b;">
+                        <h4 style="color: #d97706; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">
+                            <i class="fas fa-info-circle"></i> Get Started
+                        </h4>
+                        <p style="color: #92400e; font-size: 0.75rem; margin: 0;">
+                            Add your first property to start managing your rental portfolio.
+                        </p>
+                    </div>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f9fafb;
-        }
-        
-        .dashboard-container {
-            display: flex;
-            min-height: 100vh;
-        }
-        
-        .sidebar {
-            width: 250px;
-            background-color: #1f2937;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100vh;
-            z-index: 1000;
-        }
-        
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid #374151;
-        }
-        
-        .sidebar-header h2 {
-            margin: 0;
-            font-size: 18px;
-        }
-        
-        .sidebar-header p {
-            margin: 5px 0 0 0;
-            font-size: 14px;
-            color: #9ca3af;
-        }
-        
-        .sidebar-nav {
-            flex: 1;
-            padding: 20px 0;
-        }
-        
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 20px;
-            color: #d1d5db;
-            text-decoration: none;
-            transition: background-color 0.2s;
-        }
-        
-        .nav-item:hover, .nav-item.active {
-            background-color: #374151;
-            color: white;
-        }
-        
-        .nav-item i {
-            margin-right: 10px;
-            width: 16px;
-        }
-        
-        .badge-count {
-            background-color: #3b82f6;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 12px;
-            margin-left: auto;
-        }
-        
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid #374151;
-        }
-        
-        .logout-btn {
-            display: flex;
-            align-items: center;
-            color: #d1d5db;
-            text-decoration: none;
-            padding: 10px;
-            border-radius: 6px;
-            transition: background-color 0.2s;
-        }
-        
-        .logout-btn:hover {
-            background-color: #374151;
-        }
-        
-        .logout-btn i {
-            margin-right: 8px;
-        }
-        
-        .main-content {
-            flex: 1;
-            margin-left: 250px;
-            padding: 20px;
-            background-color: #f9fafb;
-            min-height: 100vh;
-        }
-        
-        .content-header {
-            margin-bottom: 30px;
-        }
-        
-        .content-header h1 {
-            margin: 0;
-            color: #1f2937;
-        }
-        
-        .content-header p {
-            margin: 5px 0 0 0;
-            color: #6b7280;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-        }
-        
-        .stat-card.revenue {
-            grid-column: span 2;
-        }
-        
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 8px;
-            background-color: #3b82f6;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-        }
-        
-        .stat-icon.units {
-            background-color: #8b5cf6;
-        }
-        
-        .stat-icon.occupied {
-            background-color: #10b981;
-        }
-        
-        .stat-icon.available {
-            background-color: #f59e0b;
-        }
-        
-        .stat-icon.revenue {
-            background-color: #ef4444;
-        }
-        
-        .stat-info h3 {
-            margin: 0;
-            font-size: 24px;
-            color: #1f2937;
-        }
-        
-        .stat-info p {
-            margin: 5px 0 0 0;
-            color: #6b7280;
-        }
-        
-        .section {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .section-header h2 {
-            margin: 0;
-            color: #1f2937;
-        }
-        
-        .apartments-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
-        
-        .apartment-card {
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 20px;
-            transition: box-shadow 0.2s;
-        }
-        
-        .apartment-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .apartment-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .apartment-header h3 {
-            margin: 0;
-            color: #1f2937;
-        }
-        
-        .apartment-info {
-            margin-bottom: 15px;
-        }
-        
-        .apartment-info p {
-            margin: 5px 0;
-            color: #6b7280;
-            display: flex;
-            align-items: center;
-        }
-        
-        .apartment-info i {
-            margin-right: 8px;
-            width: 16px;
-            color: #9ca3af;
-        }
-        
-        .apartment-stats {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            padding: 10px;
-            background-color: #f9fafb;
-            border-radius: 6px;
-        }
-        
-        .stat-item {
-            text-align: center;
-        }
-        
-        .stat-label {
-            display: block;
-            font-size: 12px;
-            color: #6b7280;
-            margin-bottom: 2px;
-        }
-        
-        .stat-value {
-            font-weight: 600;
-            color: #1f2937;
-        }
-        
-        .apartment-actions {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-        
-        .status-active {
-            background-color: #d1fae5;
-            color: #065f46;
-        }
-        
-        .status-inactive {
-            background-color: #fef3c7;
-            color: #92400e;
-        }
-        
-        .status-occupied {
-            background-color: #dbeafe;
-            color: #1e40af;
-        }
-        
-        .status-available {
-            background-color: #d1fae5;
-            color: #065f46;
-        }
-        
-        .status-maintenance {
-            background-color: #fef3c7;
-            color: #92400e;
-        }
-        
-        .table-container {
-            overflow-x: auto;
-        }
-        
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .data-table th,
-        .data-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .data-table th {
-            background-color: #f9fafb;
-            color: #374151;
-            font-weight: 600;
-        }
-        
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        .btn-primary {
-            background-color: #3b82f6;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background-color: #2563eb;
-        }
-        
-        .btn-outline {
-            background-color: transparent;
-            color: #6b7280;
-            border: 1px solid #d1d5db;
-        }
-        
-        .btn-outline:hover {
-            background-color: #f9fafb;
-            border-color: #9ca3af;
-        }
-        
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 14px;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-        }
-        
-        .empty-icon {
-            font-size: 48px;
-            color: #9ca3af;
-            margin-bottom: 20px;
-        }
-        
-        .empty-state h3 {
-            color: #1f2937;
-            margin-bottom: 10px;
-        }
-        
-        .empty-state p {
-            color: #6b7280;
-            margin-bottom: 20px;
-        }
-        
-        .alert {
-            padding: 12px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-    </style>
-    
-    @include('partials.firebase-scripts')
 </body>
 </html> 

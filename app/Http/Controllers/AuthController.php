@@ -33,6 +33,19 @@ class AuthController extends Controller
             
             // Redirect based on user role
             $user = Auth::user();
+            
+            // Add debugging for super admin case
+            if ($user->role === 'super_admin') {
+                // Log the super admin login attempt
+                \Log::info('Super admin login attempt', [
+                    'user_id' => $user->id,
+                    'user_email' => $user->email,
+                    'user_role' => $user->role,
+                    'user_status' => $user->status,
+                    'redirect_route' => route('super-admin.dashboard')
+                ]);
+            }
+            
             switch ($user->role) {
                 case 'super_admin':
                     return redirect()->route('super-admin.dashboard');
