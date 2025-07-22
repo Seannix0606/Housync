@@ -1,0 +1,128 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use App\Services\FirebaseSyncTrait;
+
+class TenantDocument extends Model
+{
+    use HasFactory, FirebaseSyncTrait;
+
+    protected $fillable = [
+        'tenant_assignment_id',
+        'document_type',
+        'file_name',
+        'file_path',
+        'file_size',
+        'mime_type',
+        'uploaded_at',
+        'verified_at',
+        'verified_by',
+        'verification_status',
+        'verification_notes',
+        'expiry_date',
+    ];
+
+    protected $casts = [
+        'uploaded_at' => 'datetime',
+        'verified_at' => 'datetime',
+        'file_size' => 'integer',
+        'expiry_date' => 'date',
+    ];
+
+    // Relationships
+    public function tenantAssignment()
+    {
+        return $this->belongsTo(TenantAssignment::class);
+    }
+
+    public function verifiedBy()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    // Scopes
+    public function scopeVerified($query)
+    {
+        return $query->where('verification_status', 'verified');
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where('verification_status', 'pending');
+    }
+
+    public function scopeRejected($query)
+    {
+        return $query->where('verification_status', 'rejected');
+    }
+
+    public function scopeByType($query, $type)
+    {
+        return $query->where('document_type', $type);
+    }
+
+    // Helper methods
+    public function isVerified()
+    {
+        return $this->verification_status === 'verified';
+    }
+
+    public function isPending()
+    {
+        return $this->verification_status === 'pending';
+    }
+
+    public function isRejected()
+    {
+        return $this->verification_status === 'rejected';
+    }
+
+    public function getVerificationStatusBadgeClassAttribute()
+    {
+        return match($this->verification_status) {
+            'verified' => 'success',
+            'pending' => 'warning',
+            'rejected' => 'danger',
+            default => 'secondary'
+        };
+    }
+
+    public function getDocumentTypeLabelAttribute()
+    {
+        return match($this->document_type) {
+            'government_id' => 'Government ID',
+            'proof_of_income' => 'Proof of Income',
+            'employment_contract' => 'Employment Contract',
+            'bank_statement' => 'Bank Statement',
+            'character_reference' => 'Character Reference',
+            'rental_history' => 'Rental History',
+            'other' => 'Other Document',
+            default => ucfirst(str_replace('_', ' ', $this->document_type))
+        };
+    }
+
+    public function getFileSizeFormattedAttribute()
+    {
+        $bytes = $this->file_size;
+        $units = ['B', 'KB', 'MB', 'GB'];
+        
+        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+            $bytes /= 1024;
+        }
+        
+        return round($bytes, 2) . ' ' . $units[$i];
+    }
+
+    public function isExpired()
+    {
+        return $this->expiry_date && $this->expiry_date->isPast();
+    }
+
+    public function isExpiringSoon($days = 30)
+    {
+        return $this->expiry_date && $this->expiry_date->diffInDays(now()) <= $days;
+    }
+} 

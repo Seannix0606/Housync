@@ -451,8 +451,8 @@
                         <span class="badge-count">{{ $stats['total_units'] }}</span>
                     @endif
                 </a>
-                <a href="#" class="nav-item">
-                    <i class="fas fa-users"></i> Tenants
+                <a href="{{ route('landlord.tenant-assignments') }}" class="nav-item">
+                    <i class="fas fa-users"></i> Tenant Assignments
                 </a>
                 <a href="#" class="nav-item">
                     <i class="fas fa-credit-card"></i> Payments

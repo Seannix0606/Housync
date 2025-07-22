@@ -5,6 +5,7 @@ use App\Http\Controllers\UnitController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\LandlordController;
+use App\Http\Controllers\TenantAssignmentController;
 use App\Services\FirebaseService;
 
 Route::get('/', function () {
@@ -53,8 +54,19 @@ Route::middleware(['role:landlord'])->prefix('landlord')->name('landlord.')->gro
     Route::delete('/apartments/{id}', [LandlordController::class, 'deleteApartment'])->name('delete-apartment');
     
     Route::get('/units/{apartmentId?}', [LandlordController::class, 'units'])->name('units');
-    Route::get('/apartments/{apartmentId}/units/create', [LandlordController::class, 'createUnit'])->name('create-unit');
+    Route::get('/units/create', [LandlordController::class, 'createUnit'])->name('create-unit');
+    Route::get('/apartments/{apartmentId}/units/create', [LandlordController::class, 'createUnit'])->name('create-unit-for-apartment');
     Route::post('/apartments/{apartmentId}/units', [LandlordController::class, 'storeUnit'])->name('store-unit');
+    
+    // Tenant Assignment Routes
+    Route::get('/tenant-assignments', [TenantAssignmentController::class, 'index'])->name('tenant-assignments');
+    Route::get('/units/{unitId}/assign-tenant', [TenantAssignmentController::class, 'create'])->name('assign-tenant');
+    Route::post('/units/{unitId}/assign-tenant', [TenantAssignmentController::class, 'store'])->name('store-tenant-assignment');
+    Route::get('/tenant-assignments/{id}', [TenantAssignmentController::class, 'show'])->name('assignment-details');
+    Route::put('/tenant-assignments/{id}/status', [TenantAssignmentController::class, 'updateStatus'])->name('update-assignment-status');
+    Route::post('/tenant-assignments/{id}/verify-documents', [TenantAssignmentController::class, 'verifyDocuments'])->name('verify-documents');
+    Route::get('/tenant-assignments/{id}/credentials', [TenantAssignmentController::class, 'getCredentials'])->name('get-credentials');
+    Route::get('/available-units', [TenantAssignmentController::class, 'getAvailableUnits'])->name('available-units');
     
     // API endpoints for apartment management
     Route::get('/apartments/{id}/details', [LandlordController::class, 'getApartmentDetails'])->name('apartment-details');
@@ -87,10 +99,13 @@ Route::get('/dashboard', function () {
     }
 })->middleware('auth')->name('dashboard');
 
-// Tenant Routes (existing)
-Route::get('/tenant-dashboard', function () {
-    return view('tenant-dashboard');
-})->name('tenant.dashboard');
+// Tenant Routes
+Route::middleware(['role:tenant'])->prefix('tenant')->name('tenant.')->group(function () {
+    Route::get('/dashboard', [TenantAssignmentController::class, 'tenantDashboard'])->name('dashboard');
+    Route::get('/upload-documents', [TenantAssignmentController::class, 'uploadDocuments'])->name('upload-documents');
+    Route::post('/upload-documents', [TenantAssignmentController::class, 'storeDocuments'])->name('store-documents');
+    Route::get('/download-document/{documentId}', [TenantAssignmentController::class, 'downloadDocument'])->name('download-document');
+});
 
 Route::get('/tenant-payments', function () {
     return view('tenant-payments');

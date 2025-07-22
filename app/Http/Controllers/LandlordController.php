@@ -169,10 +169,16 @@ class LandlordController extends Controller
         return view('landlord.units', compact('units', 'apartments', 'apartmentId'));
     }
 
-    public function createUnit($apartmentId)
+    public function createUnit($apartmentId = null)
     {
-        $apartment = Auth::user()->apartments()->findOrFail($apartmentId);
-        return view('landlord.create-unit', compact('apartment'));
+        if ($apartmentId) {
+            $apartment = Auth::user()->apartments()->findOrFail($apartmentId);
+            return view('landlord.create-unit', compact('apartment'));
+        } else {
+            // Show property selection first
+            $apartments = Auth::user()->apartments()->get();
+            return view('landlord.select-property-for-unit', compact('apartments'));
+        }
     }
 
     public function storeUnit(Request $request, $apartmentId)

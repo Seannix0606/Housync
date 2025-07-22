@@ -72,6 +72,22 @@ class User extends Authenticatable
         return $this->hasMany(User::class, 'approved_by');
     }
 
+    // Tenant assignments
+    public function tenantAssignments()
+    {
+        return $this->hasMany(TenantAssignment::class, 'tenant_id');
+    }
+
+    public function landlordAssignments()
+    {
+        return $this->hasMany(TenantAssignment::class, 'landlord_id');
+    }
+
+    public function verifiedDocuments()
+    {
+        return $this->hasMany(TenantDocument::class, 'verified_by');
+    }
+
     // Role helper methods
     public function isSuperAdmin()
     {

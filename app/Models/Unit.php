@@ -47,6 +47,16 @@ class Unit extends Model
         return $this->belongsTo(Apartment::class);
     }
 
+    public function tenantAssignment()
+    {
+        return $this->hasOne(TenantAssignment::class);
+    }
+
+    public function currentTenant()
+    {
+        return $this->hasOneThrough(User::class, TenantAssignment::class, 'unit_id', 'id', 'id', 'tenant_id');
+    }
+
     // Helper method to get landlord through apartment
     public function getLandlord()
     {

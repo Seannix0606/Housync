@@ -640,7 +640,7 @@
                         <h2 class="section-title">All Units</h2>
                         <p class="section-subtitle">View and manage your rental units across all properties</p>
                     </div>
-                    <a href="#" class="btn btn-primary" onclick="openAddUnitModal()">
+                    <a href="{{ route('landlord.create-unit') }}" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Add New Unit
                     </a>
                 </div>
@@ -802,8 +802,8 @@
         }
 
         function assignTenant(unitId) {
-            // Implement assign tenant functionality
-            alert('Assign tenant to unit: ' + unitId + '\nThis would open the tenant assignment form.');
+            // Redirect to tenant assignment form
+            window.location.href = '/landlord/units/' + unitId + '/assign-tenant';
         }
 
         function vacateUnit(unitId) {
@@ -813,10 +813,7 @@
             }
         }
 
-        function openAddUnitModal() {
-            // Implement add unit modal functionality
-            alert('Add new unit\nThis would open the add unit modal.');
-        }
+
     </script>
 </body>
 </html> 
