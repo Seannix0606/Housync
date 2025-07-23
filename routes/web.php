@@ -489,10 +489,109 @@ Route::get('/landlords-dashboard', function () {
 
 // Sync all existing data to Firebase
 Route::get('/sync-all-data-to-firebase', function () {
-    $firebaseService = new \App\Services\FirebaseDataService();
-    
-    $results = $firebaseService->syncAllData();
-    
+    $firebaseService = app(\App\Services\FirebaseService::class);
+    $results = [
+        'users' => ['success' => 0, 'failed' => 0],
+        'apartments' => ['success' => 0, 'failed' => 0],
+        'units' => ['success' => 0, 'failed' => 0],
+        'errors' => []
+    ];
+
+    try {
+        // Sync all users
+        $users = \App\Models\User::all();
+        foreach ($users as $user) {
+            $userData = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'status' => $user->status,
+                'phone' => $user->phone,
+                'address' => $user->address,
+                'business_info' => $user->business_info,
+                'approved_at' => $user->approved_at ? $user->approved_at->toISOString() : null,
+                'approved_by' => $user->approved_by,
+                'rejection_reason' => $user->rejection_reason,
+                'email_verified_at' => $user->email_verified_at ? $user->email_verified_at->toISOString() : null,
+                'created_at' => $user->created_at->toISOString(),
+                'updated_at' => $user->updated_at->toISOString(),
+            ];
+            $success = $firebaseService->storeData('users/' . $user->id, $userData);
+            if ($success) {
+                $results['users']['success']++;
+            } else {
+                $results['users']['failed'] = ($results['users']['failed'] ?? 0) + 1;
+                $results['errors'][] = "Failed to sync user: {$user->email}";
+            }
+            // Also sync to role-specific collection
+            $successRole = $firebaseService->storeData($user->role . 's/' . $user->id, $userData);
+            if (!$successRole) {
+                $results['errors'][] = "Failed to sync user to role collection: {$user->email}";
+            }
+        }
+
+        // Sync all apartments
+        $apartments = \App\Models\Apartment::all();
+        foreach ($apartments as $apartment) {
+            $apartmentData = [
+                'id' => $apartment->id,
+                'name' => $apartment->name,
+                'address' => $apartment->address,
+                'description' => $apartment->description,
+                'total_units' => $apartment->total_units,
+                'landlord_id' => $apartment->landlord_id,
+                'contact_person' => $apartment->contact_person,
+                'contact_phone' => $apartment->contact_phone,
+                'contact_email' => $apartment->contact_email,
+                'amenities' => $apartment->amenities,
+                'status' => $apartment->status,
+                'created_at' => $apartment->created_at->toISOString(),
+                'updated_at' => $apartment->updated_at->toISOString(),
+            ];
+            $success = $firebaseService->storeData('apartments/' . $apartment->id, $apartmentData);
+            if ($success) {
+                $results['apartments']['success']++;
+            } else {
+                $results['apartments']['failed'] = ($results['apartments']['failed'] ?? 0) + 1;
+                $results['errors'][] = "Failed to sync apartment: {$apartment->name}";
+            }
+        }
+
+        // Sync all units
+        $units = \App\Models\Unit::all();
+        foreach ($units as $unit) {
+            $unitData = [
+                'id' => $unit->id,
+                'apartment_id' => $unit->apartment_id,
+                'unit_number' => $unit->unit_number,
+                'unit_type' => $unit->unit_type,
+                'rent_amount' => $unit->rent_amount,
+                'status' => $unit->status,
+                'leasing_type' => $unit->leasing_type,
+                'tenant_count' => $unit->tenant_count,
+                'description' => $unit->description,
+                'floor_area' => $unit->floor_area,
+                'bedrooms' => $unit->bedrooms,
+                'bathrooms' => $unit->bathrooms,
+                'is_furnished' => $unit->is_furnished,
+                'amenities' => $unit->amenities,
+                'notes' => $unit->notes,
+                'created_at' => $unit->created_at->toISOString(),
+                'updated_at' => $unit->updated_at->toISOString(),
+            ];
+            $success = $firebaseService->storeData('units/' . $unit->id, $unitData);
+            if ($success) {
+                $results['units']['success']++;
+            } else {
+                $results['units']['failed'] = ($results['units']['failed'] ?? 0) + 1;
+                $results['errors'][] = "Failed to sync unit: {$unit->unit_number}";
+            }
+        }
+    } catch (Exception $e) {
+        $results['errors'][] = "Sync error: " . $e->getMessage();
+    }
+
     return response()->json([
         'status' => 'success',
         'message' => 'Data sync completed',
