@@ -407,11 +407,11 @@ Route::get('/firebase-landlords', function () {
 Route::get('/sync-landlords-to-firebase', function () {
     try {
         $landlords = \App\Models\User::where('role', 'landlord')->get();
-        $databaseUrl = 'https://housesync-dd86e-default-rtdb.firebaseio.com/';
-        
+        $firebaseService = app(\App\Services\FirebaseService::class);
+
         $syncedCount = 0;
         $errors = [];
-        
+
         foreach ($landlords as $landlord) {
             try {
                 // Prepare landlord data for Firebase
@@ -431,30 +431,19 @@ Route::get('/sync-landlords-to-firebase', function () {
                     'created_at' => $landlord->created_at->toISOString(),
                     'updated_at' => $landlord->updated_at->toISOString(),
                 ];
-                
-                // Save to Firebase using HTTP request
-                $firebaseUrl = $databaseUrl . 'landlords/' . $landlord->id . '.json';
-                $context = stream_context_create([
-                    'http' => [
-                        'method' => 'PUT',
-                        'header' => 'Content-Type: application/json',
-                        'content' => json_encode($firebaseData)
-                    ]
-                ]);
-                
-                $result = file_get_contents($firebaseUrl, false, $context);
-                
-                if ($result !== false) {
+
+                $success = $firebaseService->storeData('landlords/' . $landlord->id, $firebaseData);
+
+                if ($success) {
                     $syncedCount++;
                 } else {
                     $errors[] = "Failed to sync landlord: " . $landlord->email;
                 }
-                
             } catch (Exception $e) {
                 $errors[] = "Error syncing landlord " . $landlord->email . ": " . $e->getMessage();
             }
         }
-        
+
         return response()->json([
             'status' => 'success',
             'message' => 'Landlord sync completed',
@@ -463,7 +452,6 @@ Route::get('/sync-landlords-to-firebase', function () {
             'errors' => $errors,
             'timestamp' => now()->toISOString()
         ]);
-        
     } catch (Exception $e) {
         return response()->json([
             'status' => 'error',
