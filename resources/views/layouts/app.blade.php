@@ -381,7 +381,7 @@
         <div class="sidebar">
             <div class="sidebar-header">
                 <h2>Tenant Portal</h2>
-                <p>Welcome, {{ auth()->user()->name }}</p>
+                <p>Welcome, {{ optional(auth()->user())->name ?? 'Guest' }}</p>
             </div>
             <nav class="sidebar-nav">
                 <a href="{{ route('tenant.dashboard') }}" class="nav-item {{ request()->routeIs('tenant.dashboard') ? 'active' : '' }}">

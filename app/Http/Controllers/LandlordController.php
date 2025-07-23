@@ -11,9 +11,26 @@ use Illuminate\Support\Facades\Hash;
 
 class LandlordController extends Controller
 {
+    public function getSidebarCounts()
+    {
+        $landlord = auth()->user();
+        if (!$landlord) {
+            return redirect()->route('login')->with('error', 'Please log in.');
+        }
+        return [
+            'total_apartments' => $landlord->apartments()->count(),
+            'total_units' => \App\Models\Unit::whereHas('apartment', function($q) use ($landlord) {
+                $q->where('landlord_id', $landlord->id);
+            })->count(),
+        ];
+    }
+
     public function dashboard()
     {
         $landlord = Auth::user();
+        if (!$landlord) {
+            return redirect()->route('login')->with('error', 'Please log in.');
+        }
         
         $stats = [
             'total_apartments' => $landlord->apartments()->count(),
@@ -36,18 +53,18 @@ class LandlordController extends Controller
             $query->where('landlord_id', $landlord->id);
         })->with('apartment')->latest()->take(10)->get();
 
-        return view('landlord.dashboard', compact('stats', 'apartments', 'recentUnits'));
+        return view('landlord.dashboard', compact('stats', 'apartments', 'recentUnits') + ['sidebarCounts' => $this->getSidebarCounts()]);
     }
 
     public function apartments()
     {
         $apartments = Auth::user()->apartments()->with('units')->latest()->paginate(10);
-        return view('landlord.apartments', compact('apartments'));
+        return view('landlord.apartments', compact('apartments') + ['sidebarCounts' => $this->getSidebarCounts()]);
     }
 
     public function createApartment()
     {
-        return view('landlord.create-apartment');
+        return view('landlord.create-apartment', ['sidebarCounts' => $this->getSidebarCounts()]);
     }
 
     public function storeApartment(Request $request)
@@ -88,7 +105,7 @@ class LandlordController extends Controller
     public function editApartment($id)
     {
         $apartment = Auth::user()->apartments()->findOrFail($id);
-        return view('landlord.edit-apartment', compact('apartment'));
+        return view('landlord.edit-apartment', compact('apartment') + ['sidebarCounts' => $this->getSidebarCounts()]);
     }
 
     public function updateApartment(Request $request, $id)
@@ -154,35 +171,64 @@ class LandlordController extends Controller
     public function units($apartmentId = null)
     {
         $landlord = Auth::user();
-        
-        if ($apartmentId) {
-            $apartment = $landlord->apartments()->findOrFail($apartmentId);
-            $units = $apartment->units()->with('apartment')->latest()->paginate(15);
-        } else {
-            $units = Unit::whereHas('apartment', function($query) use ($landlord) {
-                $query->where('landlord_id', $landlord->id);
-            })->with('apartment')->latest()->paginate(15);
+        if (!$landlord) {
+            return redirect()->route('login')->with('error', 'Please log in.');
+        }
+        $request = request();
+
+        $query = Unit::whereHas('apartment', function($q) use ($landlord) {
+            $q->where('landlord_id', $landlord->id);
+        })->with('apartment');
+
+        // Filter by apartment
+        if ($request->filled('apartment')) {
+            $query->where('apartment_id', $request->apartment);
         }
 
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by search (unit number or property name)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('unit_number', 'like', "%{$search}%")
+                  ->orWhereHas('apartment', function($q2) use ($search) {
+                      $q2->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $units = $query->latest()->paginate(15);
         $apartments = $landlord->apartments()->get();
-        
-        return view('landlord.units', compact('units', 'apartments', 'apartmentId'));
+        $apartmentId = $request->apartment ?? $apartmentId;
+        return view('landlord.units', compact('units', 'apartments', 'apartmentId') + ['sidebarCounts' => $this->getSidebarCounts()]);
     }
 
     public function createUnit($apartmentId = null)
     {
+        $landlord = Auth::user();
+        if (!$landlord) {
+            return redirect()->route('login')->with('error', 'Please log in.');
+        }
         if ($apartmentId) {
             $apartment = Auth::user()->apartments()->findOrFail($apartmentId);
-            return view('landlord.create-unit', compact('apartment'));
+            return view('landlord.create-unit', compact('apartment') + ['sidebarCounts' => $this->getSidebarCounts()]);
         } else {
             // Show property selection first
             $apartments = Auth::user()->apartments()->get();
-            return view('landlord.select-property-for-unit', compact('apartments'));
+            return view('landlord.select-property-for-unit', compact('apartments') + ['sidebarCounts' => $this->getSidebarCounts()]);
         }
     }
 
     public function storeUnit(Request $request, $apartmentId)
     {
+        $landlord = Auth::user();
+        if (!$landlord) {
+            return redirect()->route('login')->with('error', 'Please log in.');
+        }
         $apartment = Auth::user()->apartments()->findOrFail($apartmentId);
 
         $request->validate([
@@ -220,7 +266,7 @@ class LandlordController extends Controller
 
     public function register()
     {
-        return view('landlord.register');
+        return view('landlord.register', ['sidebarCounts' => $this->getSidebarCounts()]);
     }
 
     public function storeRegistration(Request $request)
@@ -252,18 +298,65 @@ class LandlordController extends Controller
 
     public function pending()
     {
-        return view('landlord.pending');
+        return view('landlord.pending', ['sidebarCounts' => $this->getSidebarCounts()]);
     }
 
     public function rejected()
     {
         $user = Auth::user();
-        return view('landlord.rejected', compact('user'));
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please log in.');
+        }
+        return view('landlord.rejected', compact('user') + ['sidebarCounts' => $this->getSidebarCounts()]);
+    }
+
+    public function tenants()
+    {
+        $landlord = auth()->user();
+        if (!$landlord) {
+            return redirect()->route('login')->with('error', 'Please log in.');
+        }
+        // Get all units under this landlord's apartments
+        $unitIds = \App\Models\Unit::whereHas('apartment', function($q) use ($landlord) {
+            $q->where('landlord_id', $landlord->id);
+        })->pluck('id');
+
+        // Get all tenants assigned to these units
+        $tenantAssignments = \App\Models\TenantAssignment::with(['tenant', 'unit', 'unit.apartment'])
+            ->whereIn('unit_id', $unitIds)
+            ->get();
+
+        // Optionally, get unique tenants
+        $tenants = $tenantAssignments->pluck('tenant')->unique('id')->values();
+
+        // Get all tenants not currently assigned to a unit
+        $unassignedTenants = \App\Models\User::where('role', 'tenant')
+            ->whereDoesntHave('tenantAssignments', function($q) {
+                $q->where('status', 'active');
+            })
+            ->get();
+
+        // Get all available units for this landlord
+        $availableUnits = \App\Models\Unit::whereHas('apartment', function($q) use ($landlord) {
+            $q->where('landlord_id', $landlord->id);
+        })->where('status', 'available')->with('apartment')->get();
+
+        return view('landlord.tenants', [
+            'tenantAssignments' => $tenantAssignments,
+            'tenants' => $tenants,
+            'sidebarCounts' => $this->getSidebarCounts(),
+            'unassignedTenants' => $unassignedTenants,
+            'availableUnits' => $availableUnits,
+        ]);
     }
 
     // API endpoints for apartment management
     public function getApartmentDetails($id)
     {
+        $landlord = Auth::user();
+        if (!$landlord) {
+            return redirect()->route('login')->with('error', 'Please log in.');
+        }
         $apartment = Auth::user()->apartments()->with('units')->findOrFail($id);
         
         return response()->json([
@@ -280,6 +373,10 @@ class LandlordController extends Controller
 
     public function getApartmentUnits($id)
     {
+        $landlord = Auth::user();
+        if (!$landlord) {
+            return redirect()->route('login')->with('error', 'Please log in.');
+        }
         $apartment = Auth::user()->apartments()->findOrFail($id);
         $units = $apartment->units()->orderBy('unit_number')->get();
         
@@ -305,10 +402,22 @@ class LandlordController extends Controller
 
     public function storeApartmentUnit(Request $request, $apartmentId)
     {
+        $landlord = Auth::user();
+        if (!$landlord) {
+            return redirect()->route('login')->with('error', 'Please log in.');
+        }
         $apartment = Auth::user()->apartments()->findOrFail($apartmentId);
 
         $request->validate([
-            'unit_number' => 'required|string|max:50|unique:units,unit_number',
+            'unit_number' => [
+                'required',
+                'string',
+                'max:50',
+                // Unique per apartment
+                \Illuminate\Validation\Rule::unique('units')->where(function ($query) use ($apartmentId) {
+                    return $query->where('apartment_id', $apartmentId);
+                }),
+            ],
             'unit_type' => 'required|string|max:100',
             'rent_amount' => 'required|numeric|min:0',
             'bedrooms' => 'required|integer|min:0',
@@ -340,17 +449,27 @@ class LandlordController extends Controller
 
             // Firebase sync is automatically handled by the model's FirebaseSyncTrait
             
-            return response()->json([
-                'success' => true,
-                'message' => 'Unit created successfully and synced to Firebase.',
-                'unit' => $unit
-            ]);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Unit created successfully and synced to Firebase.',
+                    'unit' => $unit
+                ]);
+            } else {
+                return redirect()
+                    ->route('landlord.units', ['apartmentId' => $apartmentId])
+                    ->with('success', 'Unit created successfully and synced to Firebase.');
+            }
         } catch (\Exception $e) {
             \Log::error('Error creating unit: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create unit. Please try again.'
-            ], 500);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to create unit. Please try again.'
+                ], 500);
+            } else {
+                return back()->withInput()->with('error', 'Failed to create unit. Please try again.');
+            }
         }
     }
 }

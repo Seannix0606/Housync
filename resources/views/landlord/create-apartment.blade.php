@@ -495,16 +495,22 @@
                 <p>Property Manager</p>
             </div>
             <nav class="sidebar-nav">
-                <a href="{{ route('landlord.dashboard') }}" class="nav-item">
+                <a href="{{ route('landlord.dashboard') }}" class="nav-item{{ request()->routeIs('landlord.dashboard') ? ' active' : '' }}">
                     <i class="fas fa-home"></i> My Dashboard
                 </a>
-                <a href="{{ route('landlord.apartments') }}" class="nav-item active">
+                <a href="{{ route('landlord.apartments') }}" class="nav-item{{ request()->routeIs('landlord.apartments') ? ' active' : '' }}">
                     <i class="fas fa-building"></i> My Properties
+                    @if(isset($sidebarCounts['total_apartments']))
+                        <span class="badge-count">{{ $sidebarCounts['total_apartments'] }}</span>
+                    @endif
                 </a>
-                <a href="{{ route('landlord.units') }}" class="nav-item">
+                <a href="{{ route('landlord.units') }}" class="nav-item{{ request()->routeIs('landlord.units') ? ' active' : '' }}">
                     <i class="fas fa-door-open"></i> My Units
+                    @if(isset($sidebarCounts['total_units']))
+                        <span class="badge-count">{{ $sidebarCounts['total_units'] }}</span>
+                    @endif
                 </a>
-                <a href="#" class="nav-item">
+                <a href="{{ route('landlord.tenants') }}" class="nav-item{{ request()->routeIs('landlord.tenants') ? ' active' : '' }}">
                     <i class="fas fa-users"></i> Tenants
                 </a>
                 <a href="#" class="nav-item">

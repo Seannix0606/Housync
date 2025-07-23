@@ -22,9 +22,9 @@ class TenantAssignmentService
                 throw new \Exception('Unit is not available for assignment.');
             }
 
-            // Generate email and password
-            $email = $this->generateTenantEmail($tenantData['name']);
-            $password = $this->generatePassword();
+            // Use provided email and password if present, otherwise generate
+            $email = $tenantData['email'] ?? $this->generateTenantEmail($tenantData['name']);
+            $password = $tenantData['password'] ?? $this->generatePassword();
 
             // Create tenant user account
             $tenant = User::create([
@@ -35,6 +35,7 @@ class TenantAssignmentService
                 'status' => 'active',
                 'phone' => $tenantData['phone'] ?? null,
                 'address' => $tenantData['address'] ?? null,
+                'must_change_password' => true,
             ]);
 
             // Create tenant assignment

@@ -111,6 +111,9 @@ class TenantAssignmentController extends Controller
     public function tenantDashboard()
     {
         $tenant = Auth::user();
+        if (!$tenant) {
+            return redirect()->route('login')->with('error', 'Please log in.');
+        }
         $assignment = $tenant->tenantAssignments()->with(['unit.apartment', 'documents'])->first();
 
         if (!$assignment) {
@@ -126,6 +129,9 @@ class TenantAssignmentController extends Controller
     public function uploadDocuments()
     {
         $tenant = Auth::user();
+        if (!$tenant) {
+            return redirect()->route('login')->with('error', 'Please log in.');
+        }
         $assignment = $tenant->tenantAssignments()->with(['unit.apartment', 'documents'])->first();
 
         if (!$assignment) {
@@ -257,5 +263,138 @@ class TenantAssignmentController extends Controller
         ->get();
 
         return response()->json($units);
+    }
+
+    public function createForLandlord()
+    {
+        $landlord = Auth::user();
+        $units = \App\Models\Unit::whereHas('apartment', function($q) use ($landlord) {
+            $q->where('landlord_id', $landlord->id);
+        })->where('status', 'available')->with('apartment')->get();
+
+        return view('landlord.assign-tenant', [
+            'units' => $units,
+            'sidebarCounts' => app(\App\Http\Controllers\LandlordController::class)->getSidebarCounts(),
+        ]);
+    }
+
+    public function storeForLandlord(Request $request)
+    {
+        $request->validate([
+            'unit_id' => 'required|exists:units,id',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'lease_start_date' => 'required|date|after:today',
+            'lease_end_date' => 'required|date|after:lease_start_date',
+            'rent_amount' => 'required|numeric|min:0',
+            'security_deposit' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $result = app(TenantAssignmentService::class)->assignTenantToUnit(
+            $request->unit_id,
+            $request->all(),
+            Auth::id()
+        );
+
+        if ($result['success']) {
+            return redirect()->route('landlord.tenants')
+                ->with('success', 'Tenant assigned successfully!')
+                ->with('credentials', $result['credentials']);
+        } else {
+            return back()->withInput()->with('error', $result['message']);
+        }
+    }
+
+    /**
+     * Show the change password form for tenants
+     */
+    public function showChangePasswordForm()
+    {
+        return view('tenant.change-password');
+    }
+
+    /**
+     * Handle password update for tenants
+     */
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = Auth::user();
+        $user->password = \Hash::make($request->password);
+        $user->must_change_password = false;
+        $user->save();
+
+        return redirect()->route('tenant.dashboard')->with('success', 'Password changed successfully!');
+    }
+
+    /**
+     * Show the edit form for a tenant assignment (landlord)
+     */
+    public function editAssignment($id)
+    {
+        $assignment = TenantAssignment::with(['tenant', 'unit', 'unit.apartment'])
+            ->where('id', $id)
+            ->whereHas('unit.apartment', function($q) {
+                $q->where('landlord_id', Auth::id());
+            })
+            ->firstOrFail();
+        return view('landlord.edit-tenant-assignment', compact('assignment'));
+    }
+
+    /**
+     * Update a tenant assignment (landlord)
+     */
+    public function updateAssignment(Request $request, $id)
+    {
+        $assignment = TenantAssignment::where('id', $id)
+            ->whereHas('unit.apartment', function($q) {
+                $q->where('landlord_id', Auth::id());
+            })
+            ->firstOrFail();
+        $request->validate([
+            'lease_start_date' => 'required|date',
+            'lease_end_date' => 'required|date|after:lease_start_date',
+            'rent_amount' => 'required|numeric|min:0',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+        $assignment->lease_start_date = $request->lease_start_date;
+        $assignment->lease_end_date = $request->lease_end_date;
+        $assignment->rent_amount = $request->rent_amount;
+        $assignment->notes = $request->notes;
+        $assignment->save();
+        return redirect()->route('landlord.tenants')->with('success', 'Tenant assignment updated successfully.');
+    }
+
+    /**
+     * Delete (revoke) a tenant assignment (landlord)
+     */
+    public function deleteAssignment($id)
+    {
+        $assignment = TenantAssignment::where('id', $id)
+            ->whereHas('unit.apartment', function($q) {
+                $q->where('landlord_id', Auth::id());
+            })
+            ->firstOrFail();
+        $tenant = $assignment->tenant;
+        // Delete the assignment
+        $assignment->delete();
+        // If tenant has no other assignments, delete the user
+        if ($tenant && $tenant->tenantAssignments()->count() === 0) {
+            $tenant->delete();
+        }
+        // Optionally, set the unit as available again
+        if ($assignment->unit) {
+            $assignment->unit->status = 'available';
+            $assignment->unit->tenant_count = 0;
+            $assignment->unit->save();
+        }
+        return back()->with('success', 'Tenant and assignment deleted successfully.');
     }
 } 

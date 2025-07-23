@@ -72,6 +72,13 @@ Route::middleware(['role:landlord'])->prefix('landlord')->name('landlord.')->gro
     Route::get('/apartments/{id}/details', [LandlordController::class, 'getApartmentDetails'])->name('apartment-details');
     Route::get('/apartments/{id}/units', [LandlordController::class, 'getApartmentUnits'])->name('apartment-units');
     Route::post('/apartments/{apartmentId}/units', [LandlordController::class, 'storeApartmentUnit'])->name('store-apartment-unit');
+    Route::get('/tenants', [LandlordController::class, 'tenants'])->name('tenants');
+    Route::get('/tenants/assign', [TenantAssignmentController::class, 'createForLandlord'])->name('assign-tenant');
+    Route::post('/tenants/assign', [TenantAssignmentController::class, 'storeForLandlord'])->name('store-tenant-assignment');
+    // Edit and delete tenant assignment
+    Route::get('/tenant-assignments/{id}/edit', [TenantAssignmentController::class, 'editAssignment'])->name('edit-tenant-assignment');
+    Route::put('/tenant-assignments/{id}/edit', [TenantAssignmentController::class, 'updateAssignment'])->name('edit-tenant-assignment');
+    Route::delete('/tenant-assignments/{id}', [TenantAssignmentController::class, 'deleteAssignment'])->name('delete-tenant-assignment');
 });
 
 // Original dashboard route - redirect based on role
@@ -105,6 +112,9 @@ Route::middleware(['role:tenant'])->prefix('tenant')->name('tenant.')->group(fun
     Route::get('/upload-documents', [TenantAssignmentController::class, 'uploadDocuments'])->name('upload-documents');
     Route::post('/upload-documents', [TenantAssignmentController::class, 'storeDocuments'])->name('store-documents');
     Route::get('/download-document/{documentId}', [TenantAssignmentController::class, 'downloadDocument'])->name('download-document');
+    // Password change routes
+    Route::get('/change-password', [TenantAssignmentController::class, 'showChangePasswordForm'])->name('change-password');
+    Route::post('/change-password', [TenantAssignmentController::class, 'updatePassword'])->name('update-password');
 });
 
 Route::get('/tenant-payments', function () {

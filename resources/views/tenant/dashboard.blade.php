@@ -12,7 +12,7 @@
                         <li class="breadcrumb-item active">Dashboard</li>
                     </ol>
                 </div>
-                <h4 class="page-title">Welcome, {{ auth()->user()->name }}!</h4>
+                <h4 class="page-title">Welcome, {{ optional(auth()->user())->name ?? 'Guest' }}!</h4>
             </div>
         </div>
     </div>
@@ -263,4 +263,17 @@
         </div>
     </div>
 </div>
+@if(auth()->user()->must_change_password)
+<!-- Change Password Modal -->
+<div id="changePasswordModal" class="modal" tabindex="-1" style="display:block; background:rgba(30,41,59,0.5); position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:2000;">
+    <div class="modal-dialog" style="max-width:400px; margin:10vh auto; background:white; border-radius:1rem; box-shadow:0 8px 32px rgba(0,0,0,0.2); padding:2rem; position:relative;">
+        <h4 style="font-weight:700; color:#1e293b; margin-bottom:1rem;">Change Your Password</h4>
+        <p style="color:#64748b;">For your security, please change your password before using the portal.</p>
+        <a href="{{ route('tenant.change-password') }}" class="btn btn-primary w-100 mt-3">Change Password Now</a>
+    </div>
+</div>
+<style>
+body { overflow: hidden !important; }
+</style>
+@endif
 @endsection 
