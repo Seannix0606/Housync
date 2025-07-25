@@ -200,4 +200,11 @@ class SuperAdminController extends Controller
         $apartments = $query->latest()->paginate(15);
         return view('super-admin.apartments', compact('apartments'));
     }
+
+    public function forceSyncLandlordToFirebase($id)
+    {
+        $landlord = \App\Models\User::findOrFail($id);
+        $landlord->forceSyncToFirebase(); // Provided by FirebaseSyncTrait
+        return back()->with('success', 'Landlord data re-synced to Firebase.');
+    }
 }

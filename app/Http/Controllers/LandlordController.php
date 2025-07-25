@@ -261,6 +261,15 @@ class LandlordController extends Controller
         return view('landlord.rejected', compact('user'));
     }
 
+    public function tenants() {
+        $landlordId = Auth::id();
+        $tenants = User::where('role', 'tenant')
+            ->whereHas('tenantAssignments', function($q) use ($landlordId) {
+                $q->where('landlord_id', $landlordId);
+            })->get();
+        return view('landlord.tenants', compact('tenants'));
+    }
+
     // API endpoints for apartment management
     public function getApartmentDetails($id)
     {

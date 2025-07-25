@@ -1,3 +1,8 @@
+@extends('layouts.landlord-app')
+
+@section('title', 'My Units')
+
+@section('content')
 <!DOCTYPE html>
 <html lang="en">
 <head>

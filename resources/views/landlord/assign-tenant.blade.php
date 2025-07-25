@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.landlord-app')
 
 @section('title', 'Assign Tenant to Unit')
 
@@ -185,7 +185,7 @@
                             <div class="col-12">
                                 <div class="d-flex justify-content-end gap-2">
                                     <a href="{{ route('landlord.tenant-assignments') }}" class="btn btn-secondary">Cancel</a>
-                                    <button type="submit" class="btn btn-primary">
+                                    <button type="submit" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Assigning a tenant will automatically create their account and generate login credentials.">
                                         <i class="mdi mdi-account-plus me-1"></i> Assign Tenant
                                     </button>
                                 </div>
@@ -205,13 +205,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set minimum date for lease start date to today
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('lease_start_date').min = today;
-    
+    // Enable tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
     // Update lease end date minimum when start date changes
     document.getElementById('lease_start_date').addEventListener('change', function() {
         const startDate = this.value;
         const endDateInput = document.getElementById('lease_end_date');
         endDateInput.min = startDate;
-        
         // If end date is before start date, clear it
         if (endDateInput.value && endDateInput.value < startDate) {
             endDateInput.value = '';

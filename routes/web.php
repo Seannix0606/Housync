@@ -140,6 +140,8 @@ Route::get('/tenants', function () {
     return view('tenants');
 })->name('tenants');
 
+Route::get('/landlord/tenants', [LandlordController::class, 'tenants'])->name('landlord.tenants');
+
 Route::get('/billing', function () {
     return view('billing');
 })->name('billing');
@@ -461,6 +463,10 @@ Route::get('/sync-landlords-to-firebase', function () {
         ], 500);
     }
 });
+
+Route::get('/super-admin/force-sync-landlord/{id}', [SuperAdminController::class, 'forceSyncLandlordToFirebase'])
+    ->name('super-admin.force-sync-landlord')
+    ->middleware('auth'); // Add your admin middleware as needed
 
 // Display landlords in a user-friendly format
 Route::get('/landlords-dashboard', function () {

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.landlord-app')
 
 @section('title', 'Tenant Assignments')
 
@@ -27,14 +27,17 @@
                     <p class="mb-2">A new tenant account has been created. Please share these credentials with the tenant:</p>
                     <div class="row">
                         <div class="col-md-6">
-                            <strong>Email:</strong> {{ session('credentials')['email'] }}
+                            <strong>Email:</strong> <span id="assignedTenantEmail">{{ session('credentials')['email'] }}</span>
                         </div>
                         <div class="col-md-6">
-                            <strong>Password:</strong> {{ session('credentials')['password'] }}
+                            <strong>Password:</strong> <span id="assignedTenantPassword">{{ session('credentials')['password'] }}</span>
                         </div>
                     </div>
                     <hr>
-                    <p class="mb-0"><strong>Important:</strong> Save these credentials securely. The tenant will need them to log in and upload required documents.</p>
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="copyAssignedCredentials()" title="Copy credentials to clipboard">
+                        <i class="mdi mdi-content-copy me-1"></i> Copy Credentials
+                    </button>
+                    <p class="mb-0 mt-2"><strong>Important:</strong> Save these credentials securely. The tenant will need them to log in and upload required documents.</p>
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             </div>
@@ -121,7 +124,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <form method="GET" action="{{ route('landlord.tenant-assignments') }}" class="row g-3">
+                    <form method="GET" action="{{ route('landlord.tenant-assignments') }}" class="row g-3 align-items-end">
                         <div class="col-md-3">
                             <label for="status" class="form-label">Status</label>
                             <select name="status" id="status" class="form-select">
@@ -147,15 +150,97 @@
                                 <option value="0" {{ request('documents_verified') == '0' ? 'selected' : '' }}>No</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">&nbsp;</label>
-                            <div>
-                                <button type="submit" class="btn btn-primary">Filter</button>
-                                <a href="{{ route('landlord.tenant-assignments') }}" class="btn btn-secondary">Clear</a>
-                            </div>
+                        <div class="col-md-3 d-flex gap-2 align-items-end">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <a href="{{ route('landlord.tenant-assignments') }}" class="btn btn-secondary">Clear</a>
+                            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#assignTenantModal">
+                                <i class="mdi mdi-account-plus me-1"></i> Assign Tenant
+                            </button>
                         </div>
                     </form>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Tenant Modal -->
+    <div class="modal fade" id="assignTenantModal" tabindex="-1" aria-labelledby="assignTenantModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="assignTenantModalLabel">Assign Tenant to Unit</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="#" id="assignTenantForm">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="unit_id" class="form-label">Select Unit <span class="text-danger">*</span></label>
+                                <select class="form-select" id="unit_id" name="unit_id" required>
+                                    <option value="">-- Select an Available Unit --</option>
+                                    @foreach(\App\Models\Unit::available()->whereHas('apartment', function($q){ $q->where('landlord_id', auth()->id()); })->get() as $unit)
+                                        <option value="{{ $unit->id }}">
+                                            {{ $unit->unit_number }} ({{ $unit->apartment->name ?? 'N/A' }}) - ₱{{ number_format($unit->rent_amount, 2) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Tenant Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="text" class="form-control" id="phone" name="phone">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="address" class="form-label">Address</label>
+                                <input type="text" class="form-control" id="address" name="address">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="lease_start_date" class="form-label">Lease Start Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="lease_start_date" name="lease_start_date" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="lease_end_date" class="form-label">Lease End Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="lease_end_date" name="lease_end_date" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="rent_amount" class="form-label">Monthly Rent <span class="text-danger">*</span></label>
+                                <input type="number" step="0.01" class="form-control" id="rent_amount" name="rent_amount" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="security_deposit" class="form-label">Security Deposit</label>
+                                <input type="number" step="0.01" class="form-control" id="security_deposit" name="security_deposit">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Additional Notes</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>
+                        </div>
+                        <div class="alert alert-info mt-3">
+                            <h6 class="alert-heading">Workflow</h6>
+                            <ul class="mb-0">
+                                <li>A new tenant account will be automatically created</li>
+                                <li>Login credentials will be generated and shown after assignment</li>
+                                <li>The tenant will receive access to their dashboard</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="assignTenantSubmit" disabled>
+                            <i class="mdi mdi-account-plus me-1"></i> Assign Tenant
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -218,23 +303,23 @@
                                     </td>
                                     <td>
                                         <div class="dropdown">
-                                            <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                Actions
+                                            <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="View Details">
+                                                <i class="mdi mdi-eye"></i>
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li><a class="dropdown-item" href="{{ route('landlord.assignment-details', $assignment->id) }}">
                                                     <i class="mdi mdi-eye me-1"></i> View Details
                                                 </a></li>
-                                                <li><a class="dropdown-item" href="#" onclick="viewCredentials({{ $assignment->id }}, '{{ $assignment->tenant->email }}')">
+                                                <li><a class="dropdown-item" href="#" onclick="viewCredentials({{ $assignment->id }}, '{{ $assignment->tenant->email }}')" title="View Login Credentials">
                                                     <i class="mdi mdi-key me-1"></i> View Credentials
                                                 </a></li>
                                                 @if($assignment->status === 'pending')
-                                                <li><a class="dropdown-item" href="#" onclick="updateStatus({{ $assignment->id }}, 'active')">
+                                                <li><a class="dropdown-item" href="#" onclick="updateStatus({{ $assignment->id }}, 'active')" title="Activate Assignment">
                                                     <i class="mdi mdi-check me-1"></i> Activate
                                                 </a></li>
                                                 @endif
                                                 @if($assignment->status === 'active')
-                                                <li><a class="dropdown-item" href="#" onclick="updateStatus({{ $assignment->id }}, 'terminated')">
+                                                <li><a class="dropdown-item" href="#" onclick="updateStatus({{ $assignment->id }}, 'terminated')" title="Terminate Assignment">
                                                     <i class="mdi mdi-close me-1"></i> Terminate
                                                 </a></li>
                                                 @endif
@@ -354,5 +439,52 @@ function copyCredentials() {
         alert('Could not copy to clipboard. Please copy manually.');
     });
 }
+
+function copyAssignedCredentials() {
+    const email = document.getElementById('assignedTenantEmail').textContent;
+    const password = document.getElementById('assignedTenantPassword').textContent;
+    const credentials = `Email: ${email}\nPassword: ${password}`;
+    navigator.clipboard.writeText(credentials).then(function() {
+        alert('Credentials copied to clipboard!');
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        alert('Could not copy to clipboard. Please copy manually.');
+    });
+}
+
+// Set up modal form to update action URL with selected unit
+const assignTenantForm = document.getElementById('assignTenantForm');
+const unitSelect = document.getElementById('unit_id');
+const assignTenantSubmit = document.getElementById('assignTenantSubmit');
+if (assignTenantForm && unitSelect && assignTenantSubmit) {
+    unitSelect.addEventListener('change', function() {
+        if (this.value) {
+            const baseAction = "/landlord/units/";
+            assignTenantForm.action = baseAction + this.value + "/assign-tenant";
+            assignTenantSubmit.disabled = false;
+        } else {
+            assignTenantForm.action = '#';
+            assignTenantSubmit.disabled = true;
+        }
+    });
+    // Prevent form submission if no unit is selected
+    assignTenantForm.addEventListener('submit', function(e) {
+        if (!unitSelect.value) {
+            e.preventDefault();
+            alert('Please select a unit to assign.');
+        }
+    });
+}
+// Set minimum date for lease start date to today
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('lease_start_date').min = today;
+document.getElementById('lease_start_date').addEventListener('change', function() {
+    const startDate = this.value;
+    const endDateInput = document.getElementById('lease_end_date');
+    endDateInput.min = startDate;
+    if (endDateInput.value && endDateInput.value < startDate) {
+        endDateInput.value = '';
+    }
+});
 </script>
 @endpush 
