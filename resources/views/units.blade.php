@@ -219,7 +219,7 @@
                                 <div class="unit-info">
                                     <div class="info-item">
                                         <i class="fas fa-user"></i>
-                                        <span>Owner: {{ $unit->owner_name }}</span>
+                                        <span>Landlord: {{ $unit->apartment ? $unit->apartment->landlord->name : 'N/A' }}</span>
                                     </div>
                                     <div class="info-item">
                                         <i class="fas fa-users"></i>
@@ -349,8 +349,11 @@
                             <input type="text" id="unitNumber" name="unit_number" required placeholder="e.g., Unit 09">
                         </div>
                         <div class="form-group">
-                            <label for="ownerName">Owner Name *</label>
-                            <input type="text" id="ownerName" name="owner_name" required placeholder="e.g., John Doe">
+                            <label for="apartmentId">Apartment *</label>
+                            <select id="apartmentId" name="apartment_id" required>
+                                <option value="">Select Apartment</option>
+                                <!-- Apartment options will be populated dynamically -->
+                            </select>
                         </div>
                     </div>
                     <div class="form-row">

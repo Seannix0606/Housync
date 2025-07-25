@@ -50,8 +50,8 @@ class UnitController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('unit_number', 'like', "%{$search}%")
-                  ->orWhere('owner_name', 'like', "%{$search}%")
-                  ->orWhere('unit_type', 'like', "%{$search}%");
+                  ->orWhere('unit_type', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -84,12 +84,14 @@ class UnitController extends Controller
     {
         $validatedData = $request->validate([
             'unit_number' => 'required|string|unique:units,unit_number',
-            'owner_name' => 'required|string|max:255',
+            'apartment_id' => 'required|exists:apartments,id',
             'unit_type' => 'required|string|max:255',
             'rent_amount' => 'required|numeric|min:0',
             'status' => 'required|in:occupied,available,maintenance',
             'leasing_type' => 'required|in:separate,inclusive',
             'tenant_count' => 'required|integer|min:0',
+            'max_occupants' => 'nullable|integer|min:1',
+            'floor_number' => 'nullable|integer|min:1',
             'description' => 'nullable|string',
             'floor_area' => 'nullable|numeric|min:0',
             'bedrooms' => 'required|integer|min:0',
@@ -155,8 +157,8 @@ class UnitController extends Controller
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('unit_number', 'like', "%{$search}%")
-                  ->orWhere('owner_name', 'like', "%{$search}%")
-                  ->orWhere('unit_type', 'like', "%{$search}%");
+                  ->orWhere('unit_type', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
             });
         }
 

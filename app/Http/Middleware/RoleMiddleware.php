@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
@@ -18,7 +19,7 @@ class RoleMiddleware
     {
         // Check if user is authenticated
         if (!Auth::check()) {
-            \Log::warning('RoleMiddleware: User not authenticated', [
+            Log::warning('RoleMiddleware: User not authenticated', [
                 'url' => $request->url(),
                 'required_roles' => $roles
             ]);
@@ -29,7 +30,7 @@ class RoleMiddleware
 
         // Add debugging for super admin access attempts
         if (in_array('super_admin', $roles)) {
-            \Log::info('RoleMiddleware: Super admin access attempt', [
+            Log::info('RoleMiddleware: Super admin access attempt', [
                 'url' => $request->url(),
                 'user_id' => $user->id,
                 'user_role' => $user->role,
@@ -41,7 +42,7 @@ class RoleMiddleware
 
         // Check if user has any of the required roles
         if (!in_array($user->role, $roles)) {
-            \Log::warning('RoleMiddleware: Access denied', [
+            Log::warning('RoleMiddleware: Access denied', [
                 'url' => $request->url(),
                 'user_role' => $user->role,
                 'required_roles' => $roles

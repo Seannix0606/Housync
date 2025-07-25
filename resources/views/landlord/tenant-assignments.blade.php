@@ -20,27 +20,59 @@
 
     <!-- Credentials Alert -->
     @if(session('credentials'))
-        <div class="row">
-            <div class="col-12">
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <h6 class="alert-heading">✅ Tenant Assigned Successfully!</h6>
-                    <p class="mb-2">A new tenant account has been created. Please share these credentials with the tenant:</p>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <strong>Email:</strong> <span id="assignedTenantEmail">{{ session('credentials')['email'] }}</span>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Password:</strong> <span id="assignedTenantPassword">{{ session('credentials')['password'] }}</span>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-center mb-3">
+                <i class="mdi mdi-check-circle me-2" style="font-size: 1.5rem; color: #28a745;"></i>
+                <h5 class="alert-heading mb-0">✅ Tenant Assigned Successfully!</h5>
+            </div>
+            
+            <p class="mb-3">A new tenant account has been created. Please share these credentials with the tenant:</p>
+            
+            <!-- Credentials Display -->
+            <div class="credentials-box p-3 mb-3" style="background: #f8f9fa; border: 2px solid #28a745; border-radius: 8px;">
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-bold text-primary">📧 Email Address:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="assignedTenantEmail" value="{{ session('credentials')['email'] }}" readonly style="background: white; font-weight: bold; font-size: 1.1rem;">
+                            <button class="btn btn-outline-primary" type="button" onclick="copyText('assignedTenantEmail')" title="Copy email">
+                                <i class="mdi mdi-content-copy"></i>
+                            </button>
                         </div>
                     </div>
-                    <hr>
-                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="copyAssignedCredentials()" title="Copy credentials to clipboard">
-                        <i class="mdi mdi-content-copy me-1"></i> Copy Credentials
-                    </button>
-                    <p class="mb-0 mt-2"><strong>Important:</strong> Save these credentials securely. The tenant will need them to log in and upload required documents.</p>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <div class="col-md-6 mb-2">
+                        <label class="form-label fw-bold text-primary">🔑 Password:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="assignedTenantPassword" value="{{ session('credentials')['password'] }}" readonly style="background: white; font-weight: bold; font-size: 1.1rem; color: #dc3545;">
+                            <button class="btn btn-outline-primary" type="button" onclick="copyText('assignedTenantPassword')" title="Copy password">
+                                <i class="mdi mdi-content-copy"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 mb-3">
+                <button type="button" class="btn btn-primary" onclick="copyAllCredentials()" title="Copy both email and password">
+                    <i class="mdi mdi-content-copy me-1"></i> Copy All Credentials
+                </button>
+                <button type="button" class="btn btn-outline-success" onclick="printCredentials()" title="Print credentials">
+                    <i class="mdi mdi-printer me-1"></i> Print
+                </button>
+            </div>
+            
+            <!-- Important Notice -->
+            <div class="alert alert-warning mb-0" style="border-left: 4px solid #ffc107;">
+                <h6 class="alert-heading"><i class="mdi mdi-alert-circle me-1"></i> Important:</h6>
+                <ul class="mb-0">
+                    <li><strong>Save these credentials securely</strong> - They won't be shown again</li>
+                    <li>The tenant must use these credentials to log in and upload required documents</li>
+                    <li>Assignment status will remain "Pending" until documents are verified</li>
+                </ul>
+            </div>
+            
+            <button type="button" class="btn-close" data-bs-dismiss="alert" style="position: absolute; top: 10px; right: 10px;"></button>
         </div>
     @endif
 
@@ -441,8 +473,8 @@ function copyCredentials() {
 }
 
 function copyAssignedCredentials() {
-    const email = document.getElementById('assignedTenantEmail').textContent;
-    const password = document.getElementById('assignedTenantPassword').textContent;
+    const email = document.getElementById('assignedTenantEmail').value;
+    const password = document.getElementById('assignedTenantPassword').value;
     const credentials = `Email: ${email}\nPassword: ${password}`;
     navigator.clipboard.writeText(credentials).then(function() {
         alert('Credentials copied to clipboard!');
@@ -450,6 +482,113 @@ function copyAssignedCredentials() {
         console.error('Could not copy text: ', err);
         alert('Could not copy to clipboard. Please copy manually.');
     });
+}
+
+function copyText(elementId) {
+    const element = document.getElementById(elementId);
+    element.select();
+    element.setSelectionRange(0, 99999); // For mobile devices
+    
+    navigator.clipboard.writeText(element.value).then(function() {
+        // Show success feedback
+        const btn = element.nextElementSibling;
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="mdi mdi-check"></i>';
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-success');
+        
+        setTimeout(() => {
+            btn.innerHTML = originalHtml;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-primary');
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        // Fallback for older browsers
+        document.execCommand('copy');
+        alert('Copied to clipboard!');
+    });
+}
+
+function copyAllCredentials() {
+    const email = document.getElementById('assignedTenantEmail').value;
+    const password = document.getElementById('assignedTenantPassword').value;
+    const credentials = `Tenant Login Credentials:
+Email: ${email}
+Password: ${password}
+
+Please use these credentials to log in and upload your required documents.`;
+    
+    navigator.clipboard.writeText(credentials).then(function() {
+        // Show success message
+        const btn = event.target.closest('button');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="mdi mdi-check me-1"></i> Copied!';
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-success');
+        
+        setTimeout(() => {
+            btn.innerHTML = originalHtml;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-primary');
+        }, 3000);
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        alert('Could not copy to clipboard. Please copy manually.');
+    });
+}
+
+function printCredentials() {
+    const email = document.getElementById('assignedTenantEmail').value;
+    const password = document.getElementById('assignedTenantPassword').value;
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Tenant Login Credentials</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 20px; }
+                .header { text-align: center; color: #28a745; margin-bottom: 30px; }
+                .credentials { background: #f8f9fa; padding: 20px; border: 2px solid #28a745; border-radius: 8px; margin: 20px 0; }
+                .credential-item { margin: 15px 0; }
+                .label { font-weight: bold; color: #333; }
+                .value { font-size: 1.2rem; color: #dc3545; font-weight: bold; margin-left: 10px; }
+                .footer { margin-top: 30px; color: #666; font-size: 0.9rem; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h2>🏠 HouseSync - Tenant Login Credentials</h2>
+                <p>Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+            </div>
+            
+            <div class="credentials">
+                <div class="credential-item">
+                    <span class="label">📧 Email Address:</span>
+                    <span class="value">${email}</span>
+                </div>
+                <div class="credential-item">
+                    <span class="label">🔑 Password:</span>
+                    <span class="value">${password}</span>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <h4>Important Instructions:</h4>
+                <ul>
+                    <li>Use these credentials to log in to your tenant dashboard</li>
+                    <li>Upload all required documents after logging in</li>
+                    <li>Your assignment will be activated once documents are verified</li>
+                    <li>Keep these credentials secure and private</li>
+                </ul>
+                <p><strong>Login URL:</strong> ${window.location.origin}/login</p>
+            </div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
 }
 
 // Set up modal form to update action URL with selected unit

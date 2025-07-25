@@ -227,7 +227,7 @@ class TenantAssignmentController extends Controller
             abort(404);
         }
 
-        return Storage::disk('public')->download($document->file_path, $document->file_name);
+        return Storage::disk('public')->response($document->file_path, $document->file_name);
     }
 
     /**

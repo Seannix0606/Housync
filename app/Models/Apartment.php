@@ -5,6 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $address
+ * @property string|null $description
+ * @property int $landlord_id
+ * @property int $total_units
+ * @property array|null $amenities
+ * @property string|null $contact_person
+ * @property string|null $contact_phone
+ * @property string|null $contact_email
+ * @property string $status
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ */
 class Apartment extends Model
 {
     use HasFactory;

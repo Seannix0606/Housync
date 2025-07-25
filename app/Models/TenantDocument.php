@@ -5,6 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $tenant_assignment_id
+ * @property string $document_type
+ * @property string $file_name
+ * @property string $file_path
+ * @property int $file_size
+ * @property string $mime_type
+ * @property string $verification_status
+ * @property int|null $verified_by
+ * @property \Carbon\Carbon|null $verified_at
+ * @property string|null $verification_notes
+ * @property \Carbon\Carbon|null $expiry_date
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ */
 class TenantDocument extends Model
 {
     use HasFactory;

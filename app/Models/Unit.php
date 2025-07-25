@@ -5,6 +5,27 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * @property int $id
+ * @property string $unit_number
+ * @property int $apartment_id
+ * @property string $unit_type
+ * @property float $rent_amount
+ * @property string $status
+ * @property string $leasing_type
+ * @property int $tenant_count
+ * @property int|null $max_occupants
+ * @property int|null $floor_number
+ * @property string|null $description
+ * @property float|null $floor_area
+ * @property int $bedrooms
+ * @property int $bathrooms
+ * @property bool $is_furnished
+ * @property array|null $amenities
+ * @property string|null $notes
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ */
 class Unit extends Model
 {
     use HasFactory;

@@ -5,6 +5,25 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $unit_id
+ * @property int $tenant_id
+ * @property int $landlord_id
+ * @property \Carbon\Carbon $assigned_at
+ * @property \Carbon\Carbon $lease_start_date
+ * @property \Carbon\Carbon $lease_end_date
+ * @property float $rent_amount
+ * @property float $security_deposit
+ * @property string $status
+ * @property string|null $notes
+ * @property bool $documents_uploaded
+ * @property bool $documents_verified
+ * @property string|null $verification_notes
+ * @property string|null $generated_password
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ */
 class TenantAssignment extends Model
 {
     use HasFactory;

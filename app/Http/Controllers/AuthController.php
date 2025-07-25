@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
 
 class AuthController extends Controller
@@ -37,7 +38,7 @@ class AuthController extends Controller
             // Add debugging for super admin case
             if ($user->role === 'super_admin') {
                 // Log the super admin login attempt
-                \Log::info('Super admin login attempt', [
+                Log::info('Super admin login attempt', [
                     'user_id' => $user->id,
                     'user_email' => $user->email,
                     'user_role' => $user->role,
