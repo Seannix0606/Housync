@@ -15,15 +15,17 @@ class SuperAdminSeeder extends Seeder
     public function run(): void
     {
         // Create super admin user
-        User::create([
-            'name' => 'Super Admin',
-            'email' => 'admin@housesync.com',
-            'password' => Hash::make('admin123'),
-            'role' => 'super_admin',
-            'status' => 'active',
-            'phone' => '+1234567890',
-            'address' => 'HouseSync Headquarters',
-            'email_verified_at' => now(),
-        ]);
+        User::updateOrCreate(
+            ['email' => 'admin@housesync.com'],
+            [
+                'name' => 'Super Admin',
+                'password' => Hash::make('admin123'),
+                'role' => 'super_admin',
+                'status' => 'active',
+                'phone' => '+1234567890',
+                'address' => 'HouseSync Headquarters',
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }

@@ -76,9 +76,7 @@ class LandlordController extends Controller
                 'status' => 'active',
             ]);
 
-            // Firebase sync is automatically handled by the model's FirebaseSyncTrait
-            
-            return redirect()->route('landlord.apartments')->with('success', 'Apartment created successfully and synced to Firebase.');
+            return redirect()->route('landlord.apartments')->with('success', 'Apartment created successfully.');
         } catch (\Exception $e) {
             \Log::error('Error creating apartment: ' . $e->getMessage());
             return back()->withInput()->with('error', 'Failed to create apartment. Please try again.');
@@ -120,9 +118,7 @@ class LandlordController extends Controller
                 'status' => $request->status,
             ]);
 
-            // Firebase sync is automatically handled by the model's FirebaseSyncTrait
-            
-            return redirect()->route('landlord.apartments')->with('success', 'Apartment updated successfully and synced to Firebase.');
+            return redirect()->route('landlord.apartments')->with('success', 'Apartment updated successfully.');
         } catch (\Exception $e) {
             \Log::error('Error updating apartment: ' . $e->getMessage());
             return back()->withInput()->with('error', 'Failed to update apartment. Please try again.');
@@ -142,9 +138,7 @@ class LandlordController extends Controller
             $apartmentName = $apartment->name;
             $apartment->delete();
             
-            // Firebase deletion is automatically handled by the model's FirebaseSyncTrait
-            
-            return back()->with('success', "Apartment '{$apartmentName}' deleted successfully and removed from Firebase.");
+            return back()->with('success', "Apartment '{$apartmentName}' deleted successfully.");
         } catch (\Exception $e) {
             \Log::error('Error deleting apartment: ' . $e->getMessage());
             return back()->with('error', 'Failed to delete apartment. Please try again.');
@@ -244,8 +238,6 @@ class LandlordController extends Controller
             'address' => $request->address,
             'business_info' => $request->business_info,
         ]);
-
-        // Firebase sync is now handled automatically by the model
 
         return redirect()->route('landlord.pending')->with('success', 'Registration submitted successfully. Please wait for admin approval.');
     }
@@ -347,11 +339,9 @@ class LandlordController extends Controller
                 'is_furnished' => in_array('furnished', $request->amenities ?? []),
             ]);
 
-            // Firebase sync is automatically handled by the model's FirebaseSyncTrait
-            
             return response()->json([
                 'success' => true,
-                'message' => 'Unit created successfully and synced to Firebase.',
+                'message' => 'Unit created successfully.',
                 'unit' => $unit
             ]);
         } catch (\Exception $e) {

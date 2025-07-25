@@ -69,8 +69,6 @@ class SuperAdminController extends Controller
 
         $landlord->approve(Auth::id());
 
-        // Firebase sync is now handled automatically by the model
-
         return back()->with('success', 'Landlord approved successfully.');
     }
 
@@ -87,8 +85,6 @@ class SuperAdminController extends Controller
         }
 
         $landlord->reject(Auth::id(), $request->reason);
-
-        // Firebase sync is now handled automatically by the model
 
         return back()->with('success', 'Landlord rejected successfully.');
     }
@@ -199,12 +195,5 @@ class SuperAdminController extends Controller
         
         $apartments = $query->latest()->paginate(15);
         return view('super-admin.apartments', compact('apartments'));
-    }
-
-    public function forceSyncLandlordToFirebase($id)
-    {
-        $landlord = \App\Models\User::findOrFail($id);
-        $landlord->forceSyncToFirebase(); // Provided by FirebaseSyncTrait
-        return back()->with('success', 'Landlord data re-synced to Firebase.');
     }
 }

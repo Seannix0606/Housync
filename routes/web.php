@@ -6,7 +6,6 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\LandlordController;
 use App\Http\Controllers\TenantAssignmentController;
-use App\Services\FirebaseService;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -160,89 +159,106 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Firebase test route
 Route::get('/test-firebase', function () {
     try {
-        $firebaseService = new App\Services\FirebaseService();
+        $factory = (new \Kreait\Firebase\Factory)
+            ->withDatabaseUri('https://housesync-dd86e-default-rtdb.firebaseio.com/');
         
-        if ($firebaseService->isConfigured()) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Firebase is configured and working!',
-                'timestamp' => now()->toISOString()
-            ]);
-        } else {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Firebase is not properly configured. Please check your environment variables.',
-                'timestamp' => now()->toISOString()
-            ], 500);
-        }
+        $database = $factory->createDatabase();
+        
+        // Test writing data
+        $testData = [
+            'message' => 'Hello from HouseSync!',
+            'timestamp' => now()->toISOString(),
+            'test' => true
+        ];
+        
+        $database->getReference('test/simple')->set($testData);
+        
+        // Test reading data
+        $snapshot = $database->getReference('test/simple')->getSnapshot();
+        $readData = $snapshot->getValue();
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Firebase simple test successful!',
+            'written_data' => $testData,
+            'read_data' => $readData
+        ]);
+        
     } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
-            'message' => 'Firebase test failed: ' . $e->getMessage(),
-            'timestamp' => now()->toISOString()
+            'message' => 'Firebase simple test failed: ' . $e->getMessage()
         ], 500);
     }
 })->name('test-firebase');
 
 // Firebase write test route
 Route::get('/test-firebase-write', function () {
-    $firebaseService = app(FirebaseService::class);
-    
-    if (!$firebaseService->isConfigured()) {
+    try {
+        $factory = (new \Kreait\Firebase\Factory)
+            ->withDatabaseUri('https://housesync-dd86e-default-rtdb.firebaseio.com/');
+        
+        $database = $factory->createDatabase();
+        
+        // Test data to write
+        $testData = [
+            'message' => 'Hello from HouseSync!',
+            'timestamp' => now()->toISOString(),
+            'user' => 'test_user',
+            'data' => [
+                'property' => 'Test Property',
+                'units' => 5,
+                'location' => 'Test City'
+            ]
+        ];
+        
+        // Write data to Firebase
+        $success = $database->getReference('test/housesync')->set($testData);
+        
+        if ($success) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data written to Firebase successfully!',
+                'data' => $testData
+            ]);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to write data to Firebase'
+            ], 500);
+        }
+    } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
-            'message' => 'Firebase is not configured properly'
-        ], 500);
-    }
-    
-    // Test data to write
-    $testData = [
-        'message' => 'Hello from HouseSync!',
-        'timestamp' => now()->toISOString(),
-        'user' => 'test_user',
-        'data' => [
-            'property' => 'Test Property',
-            'units' => 5,
-            'location' => 'Test City'
-        ]
-    ];
-    
-    // Write data to Firebase
-    $success = $firebaseService->storeData('test/housesync', $testData);
-    
-    if ($success) {
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data written to Firebase successfully!',
-            'data' => $testData
-        ]);
-    } else {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Failed to write data to Firebase'
+            'message' => 'Firebase write test failed: ' . $e->getMessage(),
+            'timestamp' => now()->toISOString()
         ], 500);
     }
 });
 
 // Firebase read test route
 Route::get('/test-firebase-read', function () {
-    $firebaseService = app(FirebaseService::class);
-    
-    if (!$firebaseService->isConfigured()) {
+    try {
+        $factory = (new \Kreait\Firebase\Factory)
+            ->withDatabaseUri('https://housesync-dd86e-default-rtdb.firebaseio.com/');
+        
+        $database = $factory->createDatabase();
+        
+        // Read data from Firebase
+        $data = $database->getReference('test/housesync')->getValue();
+        
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data read from Firebase successfully!',
+            'data' => $data
+        ]);
+    } catch (\Exception $e) {
         return response()->json([
             'status' => 'error',
-            'message' => 'Firebase is not configured properly'
+            'message' => 'Firebase read test failed: ' . $e->getMessage(),
+            'timestamp' => now()->toISOString()
         ], 500);
     }
-    
-    // Read data from Firebase
-    $data = $firebaseService->getData('test/housesync');
-    
-    return response()->json([
-        'status' => 'success',
-        'message' => 'Data read from Firebase successfully!',
-        'data' => $data
-    ]);
 });
 
 // Firebase simple test route (no auth required)
@@ -283,9 +299,6 @@ Route::get('/test-firebase-simple', function () {
 
 // Firebase App Check configuration endpoint
 Route::get('/firebase-config', function () {
-    $firebaseService = app(FirebaseService::class);
-    $config = $firebaseService->getAppCheckConfig();
-    
     return response()->json([
         'firebase_config' => [
             'apiKey' => env('FIREBASE_WEB_API_KEY'),
@@ -296,7 +309,7 @@ Route::get('/firebase-config', function () {
             'messagingSenderId' => env('FIREBASE_MESSAGING_SENDER_ID'),
             'appId' => env('FIREBASE_APP_ID')
         ],
-        'app_check_config' => $config
+        'app_check_config' => null // No longer available
     ]);
 })->name('firebase-config');
 
@@ -495,7 +508,6 @@ Route::get('/landlords-dashboard', function () {
 
 // Sync all existing data to Firebase
 Route::get('/sync-all-data-to-firebase', function () {
-    $firebaseService = app(\App\Services\FirebaseService::class);
     $results = [
         'users' => ['success' => 0, 'failed' => 0],
         'apartments' => ['success' => 0, 'failed' => 0],
@@ -523,7 +535,7 @@ Route::get('/sync-all-data-to-firebase', function () {
                 'created_at' => $user->created_at->toISOString(),
                 'updated_at' => $user->updated_at->toISOString(),
             ];
-            $success = $firebaseService->storeData('users/' . $user->id, $userData);
+            $success = $database->getReference('users/' . $user->id)->set($userData);
             if ($success) {
                 $results['users']['success']++;
             } else {
@@ -531,7 +543,7 @@ Route::get('/sync-all-data-to-firebase', function () {
                 $results['errors'][] = "Failed to sync user: {$user->email}";
             }
             // Also sync to role-specific collection
-            $successRole = $firebaseService->storeData($user->role . 's/' . $user->id, $userData);
+            $successRole = $database->getReference($user->role . 's/' . $user->id)->set($userData);
             if (!$successRole) {
                 $results['errors'][] = "Failed to sync user to role collection: {$user->email}";
             }
@@ -555,7 +567,7 @@ Route::get('/sync-all-data-to-firebase', function () {
                 'created_at' => $apartment->created_at->toISOString(),
                 'updated_at' => $apartment->updated_at->toISOString(),
             ];
-            $success = $firebaseService->storeData('apartments/' . $apartment->id, $apartmentData);
+            $success = $database->getReference('apartments/' . $apartment->id)->set($apartmentData);
             if ($success) {
                 $results['apartments']['success']++;
             } else {
@@ -586,7 +598,7 @@ Route::get('/sync-all-data-to-firebase', function () {
                 'created_at' => $unit->created_at->toISOString(),
                 'updated_at' => $unit->updated_at->toISOString(),
             ];
-            $success = $firebaseService->storeData('units/' . $unit->id, $unitData);
+            $success = $database->getReference('units/' . $unit->id)->set($unitData);
             if ($success) {
                 $results['units']['success']++;
             } else {

@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Services\FirebaseSyncTrait;
 
 class TenantAssignment extends Model
 {
-    use HasFactory, FirebaseSyncTrait;
+    use HasFactory;
 
     protected $fillable = [
         'unit_id',

@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Apartment;
 use App\Models\Unit;
+use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -13,10 +15,13 @@ class UnitSeeder extends Seeder
      */
     public function run(): void
     {
+        $apartment = Apartment::first();
+        $landlord = User::where('role', 'landlord')->first();
+        if (!$apartment || !$landlord) return;
         $units = [
             [
                 'unit_number' => 'Unit 01',
-                'owner_name' => 'Maria Santos',
+                'apartment_id' => $apartment->id,
                 'unit_type' => '1 Bedroom',
                 'rent_amount' => 8500.00,
                 'status' => 'occupied',
@@ -28,11 +33,11 @@ class UnitSeeder extends Seeder
                 'bathrooms' => 1,
                 'is_furnished' => true,
                 'amenities' => ['AC', 'WiFi', 'Cable TV'],
-                'notes' => 'Excellent tenants, always on time with payments'
+                'notes' => 'Excellent tenants, always on time with payments',
             ],
             [
                 'unit_number' => 'Unit 02',
-                'owner_name' => 'Juan Dela Cruz',
+                'apartment_id' => $apartment->id,
                 'unit_type' => 'Studio',
                 'rent_amount' => 6000.00,
                 'status' => 'occupied',
@@ -44,11 +49,11 @@ class UnitSeeder extends Seeder
                 'bathrooms' => 1,
                 'is_furnished' => false,
                 'amenities' => ['WiFi'],
-                'notes' => 'Recently renovated'
+                'notes' => 'Recently renovated',
             ],
             [
                 'unit_number' => 'Unit 03',
-                'owner_name' => 'Ana Reyes',
+                'apartment_id' => $apartment->id,
                 'unit_type' => '2 Bedroom',
                 'rent_amount' => 12000.00,
                 'status' => 'available',
@@ -64,7 +69,7 @@ class UnitSeeder extends Seeder
             ],
             [
                 'unit_number' => 'Unit 04',
-                'owner_name' => 'Carlos Mendoza',
+                'apartment_id' => $apartment->id,
                 'unit_type' => '2 Bedroom',
                 'rent_amount' => 11500.00,
                 'status' => 'occupied',
@@ -80,7 +85,7 @@ class UnitSeeder extends Seeder
             ],
             [
                 'unit_number' => 'Unit 05',
-                'owner_name' => 'Lisa Garcia',
+                'apartment_id' => $apartment->id,
                 'unit_type' => '1 Bedroom',
                 'rent_amount' => 9000.00,
                 'status' => 'available',
@@ -96,7 +101,7 @@ class UnitSeeder extends Seeder
             ],
             [
                 'unit_number' => 'Unit 06',
-                'owner_name' => 'Roberto Cruz',
+                'apartment_id' => $apartment->id,
                 'unit_type' => 'Studio',
                 'rent_amount' => 7500.00,
                 'status' => 'occupied',
@@ -112,7 +117,7 @@ class UnitSeeder extends Seeder
             ],
             [
                 'unit_number' => 'Unit 07',
-                'owner_name' => 'Patricia Lim',
+                'apartment_id' => $apartment->id,
                 'unit_type' => '3 Bedroom',
                 'rent_amount' => 15000.00,
                 'status' => 'available',
@@ -128,7 +133,7 @@ class UnitSeeder extends Seeder
             ],
             [
                 'unit_number' => 'Unit 08',
-                'owner_name' => 'Mark Johnson',
+                'apartment_id' => $apartment->id,
                 'unit_type' => '1 Bedroom',
                 'rent_amount' => 8000.00,
                 'status' => 'maintenance',
@@ -145,7 +150,7 @@ class UnitSeeder extends Seeder
         ];
 
         foreach ($units as $unitData) {
-            Unit::create($unitData);
+            \App\Models\Unit::create($unitData);
         }
     }
 }
