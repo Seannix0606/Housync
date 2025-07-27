@@ -125,15 +125,27 @@ class TenantAssignment extends Model
 
     public function getDocumentsStatusAttribute()
     {
-        if (!$this->documents_uploaded) {
+        // Check if there are any documents uploaded
+        $hasDocuments = $this->documents()->count() > 0;
+        
+        if (!$hasDocuments) {
             return 'pending';
         }
         
-        if (!$this->documents_verified) {
-            return 'uploaded';
+        // Check if all documents are verified
+        $pendingDocuments = $this->documents()->where('verification_status', 'pending')->count();
+        $verifiedDocuments = $this->documents()->where('verification_status', 'verified')->count();
+        $totalDocuments = $this->documents()->count();
+        
+        if ($pendingDocuments > 0) {
+            return 'uploaded'; // Some documents are pending verification
         }
         
-        return 'verified';
+        if ($verifiedDocuments === $totalDocuments && $totalDocuments > 0) {
+            return 'verified'; // All documents are verified
+        }
+        
+        return 'uploaded'; // Default fallback
     }
 
     public function getDocumentsStatusBadgeClassAttribute()

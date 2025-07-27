@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             ApartmentSeeder::class,
             UnitSeeder::class,
             TenantSeeder::class,
+            TenantDocumentSeeder::class,
         ]);
     }
 }

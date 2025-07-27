@@ -207,10 +207,34 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="{{ route('tenant.download-document', $document->id) }}" 
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="mdi mdi-download"></i> Download
-                                        </a>
+                                        <div class="btn-group" role="group">
+                                            @if(in_array($document->mime_type, ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']))
+                                                <!-- Image Preview -->
+                                                <button type="button" class="btn btn-sm btn-outline-info" onclick="viewImage('{{ asset('storage/' . $document->file_path) }}', '{{ $document->file_name }}')">
+                                                    <i class="mdi mdi-eye"></i> View
+                                                </button>
+                                            @elseif($document->mime_type === 'application/pdf')
+                                                <!-- PDF Viewer -->
+                                                <button type="button" class="btn btn-sm btn-outline-info" onclick="viewPDF('{{ asset('storage/' . $document->file_path) }}', '{{ $document->file_name }}')">
+                                                    <i class="mdi mdi-file-pdf"></i> View
+                                                </button>
+                                            @else
+                                                <!-- Generic File Viewer -->
+                                                <button type="button" class="btn btn-sm btn-outline-info" onclick="viewFile('{{ asset('storage/' . $document->file_path) }}', '{{ $document->file_name }}')">
+                                                    <i class="mdi mdi-eye"></i> View
+                                                </button>
+                                            @endif
+                                            
+                                            <a href="{{ route('tenant.download-document', $document->id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="mdi mdi-download"></i> Download
+                                            </a>
+                                            
+                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    onclick="deleteDocument({{ $document->id }}, '{{ $document->file_name }}')">
+                                                <i class="mdi mdi-delete"></i> Delete
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -263,4 +287,138 @@
         </div>
     </div>
 </div>
-@endsection 
+
+<!-- Delete Document Modal -->
+<div class="modal fade" id="deleteDocumentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Document</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <h6 class="alert-heading">⚠️ Warning</h6>
+                    <p class="mb-2">You are about to delete: <strong id="documentToDelete"></strong></p>
+                    <p class="mb-0">This action cannot be undone. The document will be permanently removed.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteDocumentForm" method="POST" style="display: inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">
+                        <i class="mdi mdi-delete me-1"></i> Delete Document
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalTitle">Image Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="imagePreview" src="" alt="Document Preview" class="img-fluid" style="max-height: 70vh;">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a id="imageDownloadLink" href="" class="btn btn-primary" download>
+                    <i class="mdi mdi-download me-1"></i> Download
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PDF Viewer Modal -->
+<div class="modal fade" id="pdfModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pdfModalTitle">PDF Viewer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <iframe id="pdfViewer" src="" width="100%" height="600px" frameborder="0"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a id="pdfDownloadLink" href="" class="btn btn-primary" download>
+                    <i class="mdi mdi-download me-1"></i> Download
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- File Viewer Modal -->
+<div class="modal fade" id="fileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileModalTitle">File Viewer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="alert alert-info">
+                    <i class="mdi mdi-file-document me-2"></i>
+                    This file type cannot be previewed directly. Please download the file to view it.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a id="fileDownloadLink" href="" class="btn btn-primary" download>
+                    <i class="mdi mdi-download me-1"></i> Download File
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@endsection
+
+@push('scripts')
+<script>
+function deleteDocument(documentId, fileName) {
+    document.getElementById('documentToDelete').textContent = fileName;
+    document.getElementById('deleteDocumentForm').action = `/tenant/delete-document/${documentId}`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteDocumentModal'));
+    modal.show();
+}
+
+function viewImage(imageUrl, fileName) {
+    document.getElementById('imagePreview').src = imageUrl;
+    document.getElementById('imageModalTitle').textContent = fileName;
+    document.getElementById('imageDownloadLink').href = imageUrl;
+    
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+}
+
+function viewPDF(pdfUrl, fileName) {
+    document.getElementById('pdfViewer').src = pdfUrl;
+    document.getElementById('pdfModalTitle').textContent = fileName;
+    document.getElementById('pdfDownloadLink').href = pdfUrl;
+    
+    const modal = new bootstrap.Modal(document.getElementById('pdfModal'));
+    modal.show();
+}
+
+function viewFile(fileUrl, fileName) {
+    document.getElementById('fileModalTitle').textContent = fileName;
+    document.getElementById('fileDownloadLink').href = fileUrl;
+    
+    const modal = new bootstrap.Modal(document.getElementById('fileModal'));
+    modal.show();
+}
+</script>
+@endpush 

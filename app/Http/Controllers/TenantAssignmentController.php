@@ -170,8 +170,11 @@ class TenantAssignmentController extends Controller
                 ]);
             }
 
-            // Mark documents as uploaded
-            $this->assignmentService->markDocumentsUploaded($assignment->id, $tenant->id);
+            // Mark documents as uploaded and update assignment status
+            $assignment->update([
+                'documents_uploaded' => true,
+                'documents_verified' => false, // New documents are always pending verification
+            ]);
 
             return redirect()->route('tenant.dashboard')
                 ->with('success', 'Documents uploaded successfully. They will be reviewed by your landlord.');
@@ -203,6 +206,50 @@ class TenantAssignmentController extends Controller
     }
 
     /**
+     * Verify individual document (landlord only)
+     */
+    public function verifyIndividualDocument(Request $request, $documentId)
+    {
+        $request->validate([
+            'verification_notes' => 'nullable|string|max:1000',
+        ]);
+
+        $document = TenantDocument::with('tenantAssignment')->findOrFail($documentId);
+        
+        // Check if landlord has access to this document
+        if ($document->tenantAssignment->landlord_id !== Auth::id()) {
+            abort(403, 'Unauthorized access to document.');
+        }
+
+        // Update the individual document
+        $document->update([
+            'verification_status' => 'verified',
+            'verified_by' => Auth::id(),
+            'verified_at' => now(),
+            'verification_notes' => $request->verification_notes,
+        ]);
+
+        // Check if all documents for this assignment are verified
+        $assignment = $document->tenantAssignment;
+        $pendingDocuments = $assignment->documents()->where('verification_status', 'pending')->count();
+        
+        if ($pendingDocuments === 0) {
+            // All documents verified, update assignment status
+            $assignment->update([
+                'documents_verified' => true,
+                'verification_notes' => 'All documents verified',
+            ]);
+
+            // Update assignment status to active if it was pending
+            if ($assignment->status === 'pending') {
+                $assignment->update(['status' => 'active']);
+            }
+        }
+
+        return back()->with('success', 'Document verified successfully.');
+    }
+
+    /**
      * Download document
      */
     public function downloadDocument($documentId)
@@ -228,6 +275,57 @@ class TenantAssignmentController extends Controller
         }
 
         return Storage::disk('public')->response($document->file_path, $document->file_name);
+    }
+
+    /**
+     * Delete document (tenant only)
+     */
+    public function deleteDocument($documentId)
+    {
+        $document = TenantDocument::with('tenantAssignment')->findOrFail($documentId);
+        
+        // Check if user is the tenant who uploaded this document
+        if ($document->tenantAssignment->tenant_id !== Auth::id()) {
+            abort(403, 'Unauthorized access to document.');
+        }
+
+        // Allow deletion of any document (tenant's own documents)
+        // No restriction on verification status
+
+        try {
+            // Delete the file from storage
+            if (Storage::disk('public')->exists($document->file_path)) {
+                Storage::disk('public')->delete($document->file_path);
+            }
+
+            // Delete the document record
+            $document->delete();
+
+            // Update assignment status based on remaining documents
+            $assignment = $document->tenantAssignment;
+            $remainingDocuments = $assignment->documents()->count();
+            
+            if ($remainingDocuments === 0) {
+                // No documents left, mark as not uploaded
+                $assignment->update([
+                    'documents_uploaded' => false,
+                    'documents_verified' => false,
+                ]);
+            } else {
+                // Check if all remaining documents are verified
+                $pendingDocuments = $assignment->documents()->where('verification_status', 'pending')->count();
+                $allVerified = $pendingDocuments === 0;
+                
+                $assignment->update([
+                    'documents_uploaded' => true,
+                    'documents_verified' => $allVerified,
+                ]);
+            }
+
+            return back()->with('success', 'Document deleted successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to delete document. Please try again.');
+        }
     }
 
     /**

@@ -178,6 +178,14 @@ class TenantAssignmentService
     {
         $assignment = TenantAssignment::findOrFail($assignmentId);
         
+        // Update all documents for this assignment to verified
+        $assignment->documents()->update([
+            'verification_status' => 'verified',
+            'verified_by' => $verifiedBy,
+            'verified_at' => now(),
+            'verification_notes' => $notes,
+        ]);
+        
         $assignment->update([
             'documents_verified' => true,
             'verification_notes' => $notes,
