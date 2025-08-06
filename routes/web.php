@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\LandlordController;
 use App\Http\Controllers\TenantAssignmentController;
+use App\Http\Controllers\StaffController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -63,11 +64,22 @@ Route::middleware(['role:landlord'])->prefix('landlord')->name('landlord.')->gro
     Route::post('/units/{unitId}/assign-tenant', [TenantAssignmentController::class, 'store'])->name('store-tenant-assignment');
     Route::get('/tenant-assignments/{id}', [TenantAssignmentController::class, 'show'])->name('assignment-details');
     Route::put('/tenant-assignments/{id}/status', [TenantAssignmentController::class, 'updateStatus'])->name('update-assignment-status');
+    Route::delete('/tenant-assignments/{id}', [TenantAssignmentController::class, 'destroy'])->name('delete-tenant-assignment');
     Route::post('/tenant-assignments/{id}/verify-documents', [TenantAssignmentController::class, 'verifyDocuments'])->name('verify-documents');
     Route::post('/documents/{documentId}/verify', [TenantAssignmentController::class, 'verifyIndividualDocument'])->name('verify-individual-document');
     Route::get('/tenant-assignments/{id}/credentials', [TenantAssignmentController::class, 'getCredentials'])->name('get-credentials');
     Route::get('/available-units', [TenantAssignmentController::class, 'getAvailableUnits'])->name('available-units');
     Route::get('/download-document/{documentId}', [TenantAssignmentController::class, 'downloadDocument'])->name('download-document');
+    
+    // Staff Management Routes
+    Route::get('/staff', [StaffController::class, 'index'])->name('staff');
+    Route::get('/staff/create', [StaffController::class, 'create'])->name('create-staff');
+    Route::get('/units/{unitId}/assign-staff', [StaffController::class, 'create'])->name('assign-staff');
+    Route::post('/staff', [StaffController::class, 'store'])->name('store-staff');
+    Route::get('/staff/{id}', [StaffController::class, 'show'])->name('staff-details');
+    Route::put('/staff/{id}/status', [StaffController::class, 'updateStatus'])->name('update-staff-status');
+    Route::delete('/staff/{id}', [StaffController::class, 'destroy'])->name('delete-staff');
+    Route::get('/staff/{id}/credentials', [StaffController::class, 'getCredentials'])->name('get-staff-credentials');
     
     // API endpoints for apartment management
     Route::get('/apartments/{id}/details', [LandlordController::class, 'getApartmentDetails'])->name('apartment-details');
@@ -95,6 +107,8 @@ Route::get('/dashboard', function () {
             }
         case 'tenant':
             return redirect()->route('tenant.dashboard');
+        case 'staff':
+            return redirect()->route('staff.dashboard');
         default:
             return redirect()->route('login');
     }
@@ -107,6 +121,11 @@ Route::middleware(['role:tenant'])->prefix('tenant')->name('tenant.')->group(fun
     Route::post('/upload-documents', [TenantAssignmentController::class, 'storeDocuments'])->name('store-documents');
     Route::get('/download-document/{documentId}', [TenantAssignmentController::class, 'downloadDocument'])->name('download-document');
     Route::delete('/delete-document/{documentId}', [TenantAssignmentController::class, 'deleteDocument'])->name('delete-document');
+});
+
+// Staff Routes
+Route::middleware(['role:staff'])->prefix('staff')->name('staff.')->group(function () {
+    Route::get('/dashboard', [StaffController::class, 'staffDashboard'])->name('dashboard');
 });
 
 Route::get('/tenant-payments', function () {

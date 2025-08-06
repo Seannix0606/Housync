@@ -355,6 +355,10 @@
                                                     <i class="mdi mdi-close me-1"></i> Terminate
                                                 </a></li>
                                                 @endif
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteTenantAssignment({{ $assignment->id }}, '{{ $assignment->tenant->name }}')" title="Delete Assignment">
+                                                    <i class="mdi mdi-delete me-1"></i> Delete Assignment
+                                                </a></li>
                                             </ul>
                                         </div>
                                     </td>
@@ -383,6 +387,12 @@
     @csrf
     @method('PUT')
     <input type="hidden" name="status" id="statusInput">
+</form>
+
+<!-- Delete Assignment Form -->
+<form id="deleteForm" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
 </form>
 
 <!-- Credentials Modal -->
@@ -589,6 +599,14 @@ function printCredentials() {
     `);
     printWindow.document.close();
     printWindow.print();
+}
+
+function deleteTenantAssignment(assignmentId, tenantName) {
+    if (confirm(`Are you sure you want to delete the assignment for ${tenantName}? This action cannot be undone.`)) {
+        const deleteForm = document.getElementById('deleteForm');
+        deleteForm.action = `/landlord/tenant-assignments/${assignmentId}`;
+        deleteForm.submit();
+    }
 }
 
 // Set up modal form to update action URL with selected unit

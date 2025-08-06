@@ -356,4 +356,42 @@ class TenantAssignmentController extends Controller
 
         return response()->json($units);
     }
+
+    /**
+     * Delete tenant assignment (landlord only)
+     */
+    public function destroy($id)
+    {
+        try {
+            $assignment = TenantAssignment::where('landlord_id', Auth::id())
+                ->with(['tenant', 'unit', 'documents'])
+                ->findOrFail($id);
+
+            // Delete all associated documents first
+            foreach ($assignment->documents as $document) {
+                // Delete the file from storage
+                if (Storage::disk('public')->exists($document->file_path)) {
+                    Storage::disk('public')->delete($document->file_path);
+                }
+                // Delete the document record
+                $document->delete();
+            }
+
+            // Update the unit status back to available
+            $assignment->unit->update(['status' => 'available']);
+
+            // Delete the tenant user account (optional - you may want to keep it)
+            // Uncomment the line below if you want to delete the tenant user account
+            // $assignment->tenant->delete();
+
+            // Delete the assignment
+            $assignment->delete();
+
+            return redirect()->route('landlord.tenant-assignments')
+                ->with('success', 'Tenant assignment deleted successfully. Unit is now available for new assignments.');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to delete tenant assignment. Please try again.');
+        }
+    }
 } 

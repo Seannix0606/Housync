@@ -60,6 +60,8 @@ class AuthController extends Controller
                     }
                 case 'tenant':
                     return redirect()->route('tenant.dashboard');
+                case 'staff':
+                    return redirect()->route('staff.dashboard');
                 default:
                     return redirect()->route('dashboard');
             }

@@ -99,6 +99,17 @@ class User extends Authenticatable
         return $this->hasMany(TenantAssignment::class, 'landlord_id');
     }
 
+    // Staff assignments
+    public function staffAssignments()
+    {
+        return $this->hasMany(StaffAssignment::class, 'staff_id');
+    }
+
+    public function landlordStaffAssignments()
+    {
+        return $this->hasMany(StaffAssignment::class, 'landlord_id');
+    }
+
     public function verifiedDocuments()
     {
         return $this->hasMany(TenantDocument::class, 'verified_by');
@@ -118,6 +129,11 @@ class User extends Authenticatable
     public function isTenant()
     {
         return $this->role === 'tenant';
+    }
+
+    public function isStaff()
+    {
+        return $this->role === 'staff';
     }
 
     // Status helper methods
