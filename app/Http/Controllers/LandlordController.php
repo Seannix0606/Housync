@@ -304,6 +304,49 @@ class LandlordController extends Controller
         ]);
     }
 
+    public function getUnitDetails($id)
+    {
+        $unit = Unit::whereHas('apartment', function($query) {
+            $query->where('landlord_id', Auth::id());
+        })->with(['apartment', 'tenantAssignments.tenant'])->findOrFail($id);
+        
+        // Get current active tenant assignment
+        $currentAssignment = $unit->tenantAssignments()->where('status', 'active')->with('tenant')->first();
+        
+        return response()->json([
+            'id' => $unit->id,
+            'unit_number' => $unit->unit_number,
+            'apartment_name' => $unit->apartment->name,
+            'apartment_id' => $unit->apartment->id,
+            'unit_type' => $unit->unit_type,
+            'rent_amount' => $unit->rent_amount,
+            'status' => $unit->status,
+            'leasing_type' => $unit->leasing_type,
+            'bedrooms' => $unit->bedrooms,
+            'bathrooms' => $unit->bathrooms,
+            'max_occupants' => $unit->max_occupants,
+            'floor_number' => $unit->floor_number,
+            'floor_area' => $unit->floor_area,
+            'is_furnished' => $unit->is_furnished,
+            'amenities' => $unit->amenities ?? [],
+            'description' => $unit->description,
+            'notes' => $unit->notes,
+            'created_at' => $unit->created_at->format('M d, Y'),
+            'updated_at' => $unit->updated_at->format('M d, Y'),
+            'current_tenant' => $currentAssignment ? [
+                'id' => $currentAssignment->tenant->id,
+                'name' => $currentAssignment->tenant->name,
+                'email' => $currentAssignment->tenant->email,
+                'phone' => $currentAssignment->tenant->phone,
+                'lease_start' => $currentAssignment->lease_start_date->format('M d, Y'),
+                'lease_end' => $currentAssignment->lease_end_date->format('M d, Y'),
+                'assignment_id' => $currentAssignment->id,
+            ] : null,
+            'total_assignments' => $unit->tenantAssignments()->count(),
+            'assignment_history' => $unit->tenantAssignments()->count(),
+        ]);
+    }
+
     public function storeApartmentUnit(Request $request, $apartmentId)
     {
         $apartment = Auth::user()->apartments()->findOrFail($apartmentId);

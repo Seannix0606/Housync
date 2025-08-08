@@ -46,7 +46,7 @@ class TenantAssignmentService
                 'lease_end_date' => $tenantData['lease_end_date'],
                 'rent_amount' => $tenantData['rent_amount'],
                 'security_deposit' => $tenantData['security_deposit'] ?? 0,
-                'status' => 'pending',
+                'status' => 'active',
                 'notes' => $tenantData['notes'] ?? null,
                 'generated_password' => $password, // Store the generated password temporarily
             ]);

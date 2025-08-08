@@ -746,16 +746,6 @@
                                     <a href="#" class="btn btn-secondary btn-sm" onclick="viewUnitDetails({{ $unit->id }})">
                                         <i class="fas fa-eye"></i> Details
                                     </a>
-                                    @if($unit->status === 'available')
-                                        <a href="#" class="btn btn-success btn-sm" onclick="assignTenant({{ $unit->id }})">
-                                            <i class="fas fa-user-plus"></i> Assign
-                                        </a>
-                                    @endif
-                                    @if($unit->status === 'occupied')
-                                        <a href="#" class="btn btn-danger btn-sm" onclick="vacateUnit({{ $unit->id }})">
-                                            <i class="fas fa-user-minus"></i> Vacate
-                                        </a>
-                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -802,23 +792,220 @@
         }
 
         function viewUnitDetails(unitId) {
-            // Implement view unit details functionality
-            alert('View unit details: ' + unitId + '\nThis would show detailed unit information.');
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('unitDetailsModal'));
+            const modalTitle = document.getElementById('unitDetailsModalLabel');
+            const modalContent = document.getElementById('unitDetailsContent');
+            const editBtn = document.getElementById('editUnitBtn');
+            
+            // Reset modal content
+            modalContent.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading unit details...</p>
+                </div>
+            `;
+            editBtn.style.display = 'none';
+            
+            modal.show();
+            
+            // Fetch unit details
+            fetch(`/landlord/units/${unitId}/details`)
+                .then(response => response.json())
+                .then(data => {
+                    modalTitle.textContent = `Unit ${data.unit_number} - Details`;
+                    
+                    // Create the details HTML
+                    modalContent.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3">Unit Information</h6>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">Unit Number</label>
+                                    <p class="mb-1">${data.unit_number}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">Property</label>
+                                    <p class="mb-1">${data.apartment_name}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">Unit Type</label>
+                                    <p class="mb-1">${data.unit_type ? data.unit_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified'}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">Monthly Rent</label>
+                                    <p class="mb-1 text-success fw-bold">₱${Number(data.rent_amount).toLocaleString()}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">Status</label>
+                                    <p class="mb-1">
+                                        <span class="badge bg-${data.status === 'occupied' ? 'success' : data.status === 'available' ? 'warning' : 'danger'}">
+                                            ${data.status.charAt(0).toUpperCase() + data.status.slice(1)}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="fw-bold mb-3">Unit Specifications</h6>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="text-center border rounded p-2 mb-3">
+                                            <h4 class="text-primary mb-0">${data.bedrooms || 0}</h4>
+                                            <small class="text-muted">Bedrooms</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="text-center border rounded p-2 mb-3">
+                                            <h4 class="text-info mb-0">${data.bathrooms || 0}</h4>
+                                            <small class="text-muted">Bathrooms</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">Floor Area</label>
+                                    <p class="mb-1">${data.floor_area ? data.floor_area + ' sq ft' : 'Not specified'}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">Max Occupants</label>
+                                    <p class="mb-1">${data.max_occupants || 'Not specified'}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">Floor Number</label>
+                                    <p class="mb-1">${data.floor_number || 'Not specified'}</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-muted">Furnished</label>
+                                    <p class="mb-1">
+                                        <span class="badge bg-${data.is_furnished ? 'success' : 'secondary'}">
+                                            ${data.is_furnished ? 'Yes' : 'No'}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${data.current_tenant ? `
+                        <hr>
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="fw-bold mb-3">Current Tenant</h6>
+                                <div class="alert alert-info">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>Name:</strong> ${data.current_tenant.name}<br>
+                                            <strong>Email:</strong> ${data.current_tenant.email}<br>
+                                            ${data.current_tenant.phone ? `<strong>Phone:</strong> ${data.current_tenant.phone}<br>` : ''}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Lease Start:</strong> ${data.current_tenant.lease_start}<br>
+                                            <strong>Lease End:</strong> ${data.current_tenant.lease_end}<br>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <a href="/landlord/tenant-assignments/${data.current_tenant.assignment_id}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> View Assignment Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${data.amenities && data.amenities.length > 0 ? `
+                        <hr>
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="fw-bold mb-3">Amenities</h6>
+                                <div class="d-flex flex-wrap gap-2">
+                                    ${data.amenities.map(amenity => `<span class="badge bg-soft-primary text-primary"><i class="fas fa-check me-1"></i>${amenity}</span>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${data.description ? `
+                        <hr>
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="fw-bold mb-3">Description</h6>
+                                <p class="text-muted">${data.description}</p>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        <hr>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="fw-bold mb-3">Quick Actions</h6>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    ${data.status === 'available' ? `
+                                        <a href="/landlord/units/${data.id}/assign-tenant" class="btn btn-success btn-sm">
+                                            <i class="fas fa-user-plus"></i> Assign Tenant
+                                        </a>
+                                    ` : ''}
+                                    <a href="/landlord/tenant-assignments?unit_id=${data.id}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-history"></i> Assignment History
+                                    </a>
+                                    <a href="/landlord/units/${data.apartment_id}" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-building"></i> View Property
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Show edit button and set up click handler
+                    editBtn.style.display = 'inline-block';
+                    editBtn.onclick = function() {
+                        editUnit(data.id);
+                    };
+                })
+                .catch(error => {
+                    console.error('Error fetching unit details:', error);
+                    modalContent.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3 text-danger">Error Loading Details</h5>
+                            <p class="text-muted">Failed to load unit details. Please try again.</p>
+                            <button class="btn btn-primary" onclick="viewUnitDetails(${unitId})">Retry</button>
+                        </div>
+                    `;
+                });
         }
 
-        function assignTenant(unitId) {
-            // Redirect to tenant assignment form
-            window.location.href = '/landlord/units/' + unitId + '/assign-tenant';
-        }
-
-        function vacateUnit(unitId) {
-            if (confirm('Are you sure you want to vacate this unit? This will remove the current tenant.')) {
-                // Implement vacate unit functionality
-                alert('Vacate unit: ' + unitId + '\nThis would remove the current tenant.');
-            }
-        }
+        // assignTenant and vacateUnit removed; tenant actions handled in Tenant Assignments tab
 
 
     </script>
+
+    <!-- Unit Details Modal -->
+    <div class="modal fade" id="unitDetailsModal" tabindex="-1" aria-labelledby="unitDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="unitDetailsModalLabel">Unit Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="unitDetailsContent">
+                    <div class="text-center py-4">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading unit details...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="editUnitBtn" style="display: none;">
+                        <i class="fas fa-edit"></i> Edit Unit
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html> 

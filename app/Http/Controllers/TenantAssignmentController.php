@@ -56,7 +56,7 @@ class TenantAssignmentController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
-            'lease_start_date' => 'required|date|after:today',
+            'lease_start_date' => 'required|date|after_or_equal:today',
             'lease_end_date' => 'required|date|after:lease_start_date',
             'rent_amount' => 'required|numeric|min:0',
             'security_deposit' => 'nullable|numeric|min:0',
@@ -76,6 +76,70 @@ class TenantAssignmentController extends Controller
         } else {
             return back()->withInput()->with('error', $result['message']);
         }
+    }
+
+    /**
+     * Reassign a previously vacated tenant (existing tenant) to a new unit
+     */
+    public function reassign(Request $request, $assignmentId)
+    {
+        $request->validate([
+            'unit_id' => 'required|exists:units,id',
+            'lease_start_date' => 'required|date|after_or_equal:today',
+            'lease_end_date' => 'required|date|after:lease_start_date',
+            'rent_amount' => 'required|numeric|min:0',
+            'security_deposit' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        // Fetch the vacated assignment within landlord scope
+        $assignment = TenantAssignment::where('landlord_id', Auth::id())
+            ->with('tenant')
+            ->findOrFail($assignmentId);
+
+        if ($assignment->status !== 'terminated') {
+            return back()->with('error', 'Only vacated tenants can be reassigned.');
+        }
+
+        // Get the old unit to free it up
+        $oldUnit = $assignment->unit;
+        
+        // Ensure target unit belongs to landlord and is available
+        $newUnit = Unit::whereHas('apartment', function($q) {
+            $q->where('landlord_id', Auth::id());
+        })->findOrFail($request->unit_id);
+
+        if ($newUnit->status !== 'available') {
+            return back()->with('error', 'Selected unit is not available.');
+        }
+
+        // Free up the old unit (make it available again)
+        $oldUnit->update([
+            'status' => 'available',
+            'tenant_count' => 0,
+        ]);
+
+        // Update the existing assignment with new unit and details
+        $assignment->update([
+            'unit_id' => $newUnit->id,
+            'lease_start_date' => $request->lease_start_date,
+            'lease_end_date' => $request->lease_end_date,
+            'rent_amount' => $request->rent_amount,
+            'security_deposit' => $request->security_deposit ?? 0,
+            'status' => 'active',
+            'notes' => $request->notes ?? null,
+            'documents_uploaded' => false, // Reset document status for new assignment
+            'documents_verified' => false,
+        ]);
+
+        // Update new unit status to occupied
+        $newUnit->update([
+            'status' => 'occupied',
+            'tenant_count' => 1,
+        ]);
+
+        return redirect()->route('landlord.tenant-assignments')
+            ->with('success', 'Tenant reassigned successfully. Credentials remain the same.');
     }
 
     /**

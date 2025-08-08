@@ -72,6 +72,11 @@ class Unit extends Model
         return $this->hasOne(TenantAssignment::class);
     }
 
+    public function tenantAssignments()
+    {
+        return $this->hasMany(TenantAssignment::class);
+    }
+
     public function currentTenant()
     {
         return $this->hasOneThrough(User::class, TenantAssignment::class, 'unit_id', 'id', 'id', 'tenant_id');

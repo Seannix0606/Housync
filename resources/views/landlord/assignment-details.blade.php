@@ -134,8 +134,8 @@
                                 @csrf
                                 @method('PUT')
                                 <input type="hidden" name="status" value="terminated">
-                                <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Are you sure you want to terminate this assignment?')">
-                                    <i class="mdi mdi-close me-1"></i> Terminate Assignment
+                                <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Are you sure you want to vacate this tenant from the unit?')">
+                                    <i class="mdi mdi-close me-1"></i> Vacate Tenant
                                 </button>
                             </form>
                         @endif

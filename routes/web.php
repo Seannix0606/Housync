@@ -53,10 +53,11 @@ Route::middleware(['role:landlord'])->prefix('landlord')->name('landlord.')->gro
     Route::put('/apartments/{id}', [LandlordController::class, 'updateApartment'])->name('update-apartment');
     Route::delete('/apartments/{id}', [LandlordController::class, 'deleteApartment'])->name('delete-apartment');
     
-    Route::get('/units/{apartmentId?}', [LandlordController::class, 'units'])->name('units');
+    // Create Unit routes must come BEFORE parameterized units route to avoid "create" being captured as {apartmentId}
     Route::get('/units/create', [LandlordController::class, 'createUnit'])->name('create-unit');
-    Route::get('/apartments/{apartmentId}/units/create', [LandlordController::class, 'createUnit'])->name('create-unit-for-apartment');
-    Route::post('/apartments/{apartmentId}/units', [LandlordController::class, 'storeUnit'])->name('store-unit');
+    Route::get('/apartments/{apartmentId}/units/create', [LandlordController::class, 'createUnit'])->name('create-unit-for-apartment')->whereNumber('apartmentId');
+    Route::post('/apartments/{apartmentId}/units', [LandlordController::class, 'storeUnit'])->name('store-unit')->whereNumber('apartmentId');
+    Route::get('/units/{apartmentId?}', [LandlordController::class, 'units'])->name('units')->whereNumber('apartmentId');
     
     // Tenant Assignment Routes
     Route::get('/tenant-assignments', [TenantAssignmentController::class, 'index'])->name('tenant-assignments');
@@ -64,6 +65,7 @@ Route::middleware(['role:landlord'])->prefix('landlord')->name('landlord.')->gro
     Route::post('/units/{unitId}/assign-tenant', [TenantAssignmentController::class, 'store'])->name('store-tenant-assignment');
     Route::get('/tenant-assignments/{id}', [TenantAssignmentController::class, 'show'])->name('assignment-details');
     Route::put('/tenant-assignments/{id}/status', [TenantAssignmentController::class, 'updateStatus'])->name('update-assignment-status');
+    Route::post('/tenant-assignments/{id}/reassign', [TenantAssignmentController::class, 'reassign'])->name('reassign-tenant');
     Route::delete('/tenant-assignments/{id}', [TenantAssignmentController::class, 'destroy'])->name('delete-tenant-assignment');
     Route::post('/tenant-assignments/{id}/verify-documents', [TenantAssignmentController::class, 'verifyDocuments'])->name('verify-documents');
     Route::post('/documents/{documentId}/verify', [TenantAssignmentController::class, 'verifyIndividualDocument'])->name('verify-individual-document');
@@ -82,9 +84,11 @@ Route::middleware(['role:landlord'])->prefix('landlord')->name('landlord.')->gro
     Route::get('/staff/{id}/credentials', [StaffController::class, 'getCredentials'])->name('get-staff-credentials');
     
     // API endpoints for apartment management
-    Route::get('/apartments/{id}/details', [LandlordController::class, 'getApartmentDetails'])->name('apartment-details');
-    Route::get('/apartments/{id}/units', [LandlordController::class, 'getApartmentUnits'])->name('apartment-units');
-    Route::post('/apartments/{apartmentId}/units', [LandlordController::class, 'storeApartmentUnit'])->name('store-apartment-unit');
+    Route::get('/apartments/{id}/details', [LandlordController::class, 'getApartmentDetails'])->name('apartment-details')->whereNumber('id');
+    Route::get('/apartments/{id}/units', [LandlordController::class, 'getApartmentUnits'])->name('apartment-units')->whereNumber('id');
+    Route::get('/units/{id}/details', [LandlordController::class, 'getUnitDetails'])->name('unit-details')->whereNumber('id');
+    // Keep JSON API separate from form POST to avoid route conflicts with landlord.store-unit
+    Route::post('/apartments/{apartmentId}/units/json', [LandlordController::class, 'storeApartmentUnit'])->name('store-apartment-unit-json')->whereNumber('apartmentId');
 });
 
 // Original dashboard route - redirect based on role
@@ -149,12 +153,12 @@ Route::get('/tenant-profile', function () {
 })->name('tenant.profile');
 
 // Units routes (need to be updated for role-based access)
-Route::middleware(['role:super_admin,landlord'])->group(function () {
-    Route::get('/units', [UnitController::class, 'index'])->name('units');
-    Route::post('/units', [UnitController::class, 'store'])->name('units.store');
-    Route::get('/units/filter', [UnitController::class, 'filter'])->name('units.filter');
-    Route::get('/units/stats', [UnitController::class, 'getStats'])->name('units.stats');
-    Route::get('/units/types', [UnitController::class, 'getUnitTypes'])->name('units.types');
+Route::middleware(['role:super_admin'])->group(function () {
+    Route::get('/admin/units', [UnitController::class, 'index'])->name('admin.units');
+    Route::post('/admin/units', [UnitController::class, 'store'])->name('admin.units.store');
+    Route::get('/admin/units/filter', [UnitController::class, 'filter'])->name('admin.units.filter');
+    Route::get('/admin/units/stats', [UnitController::class, 'getStats'])->name('admin.units.stats');
+    Route::get('/admin/units/types', [UnitController::class, 'getUnitTypes'])->name('admin.units.types');
 });
 
 Route::get('/tenants', function () {
