@@ -14,6 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
+        
+        // Exclude ESP32 API routes from CSRF protection
+        $middleware->validateCsrfTokens(except: [
+            'api/esp32/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

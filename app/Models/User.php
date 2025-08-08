@@ -115,6 +115,22 @@ class User extends Authenticatable
         return $this->hasMany(TenantDocument::class, 'verified_by');
     }
 
+    // RFID Card relationships
+    public function rfidCards()
+    {
+        return $this->hasMany(RfidCard::class, 'tenant_id');
+    }
+
+    public function landlordRfidCards()
+    {
+        return $this->hasMany(RfidCard::class, 'landlord_id');
+    }
+
+    public function securityLogs()
+    {
+        return $this->hasMany(SecurityLog::class, 'tenant_id');
+    }
+
     // Role helper methods
     public function isSuperAdmin()
     {

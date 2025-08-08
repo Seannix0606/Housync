@@ -7,6 +7,7 @@ use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\LandlordController;
 use App\Http\Controllers\TenantAssignmentController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\SecurityController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -41,6 +42,12 @@ Route::middleware(['role:super_admin'])->prefix('super-admin')->name('super-admi
     Route::put('/users/{id}', [SuperAdminController::class, 'updateUser'])->name('update-user');
     Route::delete('/users/{id}', [SuperAdminController::class, 'deleteUser'])->name('delete-user');
     Route::get('/apartments', [SuperAdminController::class, 'apartments'])->name('apartments');
+    
+    // Super Admin Security Routes
+    Route::prefix('security')->name('security.')->group(function () {
+        Route::get('/dashboard', [SecurityController::class, 'dashboard'])->name('dashboard');
+        Route::get('/logs', [SecurityController::class, 'logs'])->name('logs');
+    });
 });
 
 // Landlord Routes
@@ -85,6 +92,17 @@ Route::middleware(['role:landlord'])->prefix('landlord')->name('landlord.')->gro
     Route::get('/apartments/{id}/details', [LandlordController::class, 'getApartmentDetails'])->name('apartment-details');
     Route::get('/apartments/{id}/units', [LandlordController::class, 'getApartmentUnits'])->name('apartment-units');
     Route::post('/apartments/{apartmentId}/units', [LandlordController::class, 'storeApartmentUnit'])->name('store-apartment-unit');
+    
+    // Security Management Routes
+    Route::prefix('security')->name('security.')->group(function () {
+        Route::get('/dashboard', [SecurityController::class, 'dashboard'])->name('dashboard');
+        Route::get('/cards', [SecurityController::class, 'cards'])->name('cards');
+        Route::get('/cards/create', [SecurityController::class, 'createCard'])->name('create-card');
+        Route::post('/cards', [SecurityController::class, 'storeCard'])->name('store-card');
+        Route::get('/cards/{card}', [SecurityController::class, 'showCard'])->name('card-details');
+        Route::put('/cards/{card}/status', [SecurityController::class, 'updateCardStatus'])->name('update-card-status');
+        Route::get('/logs', [SecurityController::class, 'logs'])->name('logs');
+    });
 });
 
 // Original dashboard route - redirect based on role
@@ -121,6 +139,11 @@ Route::middleware(['role:tenant'])->prefix('tenant')->name('tenant.')->group(fun
     Route::post('/upload-documents', [TenantAssignmentController::class, 'storeDocuments'])->name('store-documents');
     Route::get('/download-document/{documentId}', [TenantAssignmentController::class, 'downloadDocument'])->name('download-document');
     Route::delete('/delete-document/{documentId}', [TenantAssignmentController::class, 'deleteDocument'])->name('delete-document');
+    
+    // Tenant Security Routes
+    Route::prefix('security')->name('security.')->group(function () {
+        Route::get('/dashboard', [SecurityController::class, 'dashboard'])->name('dashboard');
+    });
 });
 
 // Staff Routes
@@ -177,3 +200,9 @@ Route::get('/security', function () {
 
 // Authentication routes
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// ESP32 Serial Communication Routes (No authentication required for hardware)
+Route::prefix('api/esp32')->name('esp32.')->group(function () {
+    Route::post('/rfid-scan', [SecurityController::class, 'handleRfidScan'])->name('rfid-scan');
+    Route::get('/device-status', [SecurityController::class, 'deviceStatus'])->name('device-status');
+});
